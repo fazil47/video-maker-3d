@@ -164,6 +164,26 @@ export default class App {
     camera.keysDown.push(83); // S
     camera.keysRight.push(68); // D
 
+    this.scene.onPointerDown = (evt) => {
+      if (!this.engine) {
+        throw new Error("No engine");
+      }
+
+      if (evt.button === 2) {
+        this.engine.enterPointerlock();
+      }
+    };
+
+    this.scene.onPointerUp = (evt) => {
+      if (!this.engine) {
+        throw new Error("No engine");
+      }
+
+      if (evt.button === 2) {
+        this.engine.exitPointerlock();
+      }
+    };
+
     return camera;
   }
 
