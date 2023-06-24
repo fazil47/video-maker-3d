@@ -42,13 +42,9 @@ export default function BabylonScene() {
       };
 
       window.addEventListener("resize", resize);
-      window.addEventListener("orientationchange", resize);
-      window.addEventListener("fullscreenchange", resize);
 
       return () => {
         window.removeEventListener("resize", resize);
-        window.removeEventListener("orientationchange", resize);
-        window.removeEventListener("fullscreenchange", resize);
       };
     }
   }, [engine]);
