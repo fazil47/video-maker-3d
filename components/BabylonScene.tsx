@@ -15,32 +15,67 @@ export default function BabylonScene() {
   useEffect(() => {
     if (window) {
       const resize = () => {
+        if (renderCanvas.current) {
+          // Calculate dimensions of parent container by subtracting padding from client dimensions
+          const parentContainer = renderCanvas.current.parentElement;
+
+          if (!parentContainer) {
+            return;
+          }
+
+          const height =
+            parentContainer.clientHeight -
+            parseFloat(window.getComputedStyle(parentContainer).paddingTop) -
+            parseFloat(window.getComputedStyle(parentContainer).paddingBottom);
+          const width =
+            parentContainer.clientWidth -
+            parseFloat(window.getComputedStyle(parentContainer).paddingLeft) -
+            parseFloat(window.getComputedStyle(parentContainer).paddingRight);
+
+          renderCanvas.current.width = width;
+          renderCanvas.current.height = height;
+        }
+
         if (engine) {
           engine.resize();
         }
       };
+
       window.addEventListener("resize", resize);
+      window.addEventListener("orientationchange", resize);
+      window.addEventListener("fullscreenchange", resize);
 
       return () => {
         window.removeEventListener("resize", resize);
+        window.removeEventListener("orientationchange", resize);
+        window.removeEventListener("fullscreenchange", resize);
       };
     }
   }, [engine]);
 
   useEffect(() => {
-    if (renderCanvas.current) {
+    if (renderCanvas.current && !(engine && scene)) {
       const app = new BabylonApp(renderCanvas.current, (engine, scene) => {
         setEngine(engine);
         setScene(scene);
         setLoaded(true);
       });
     }
-  }, [renderCanvas]);
+
+    return () => {
+      if (scene) {
+        scene.dispose();
+      }
+      if (engine) {
+        engine.dispose();
+      }
+    };
+  }, [renderCanvas, engine, scene]);
 
   return (
     <>
       {loaded ? null : (
-        <div className="flex flex-col w-full flex-grow items-center justify-center p-4">
+        <div className="fixed left-0 top-0 h-screen w-screen flex justify-center items-center p-4">
           <p className="text-3xl font-bold">Loading...</p>
         </div>
       )}
