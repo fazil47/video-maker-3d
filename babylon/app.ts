@@ -164,19 +164,6 @@ export default class App {
     camera.keysDown.push(83); // S
     camera.keysRight.push(68); // D
 
-    this.scene.onPointerDown = (evt) => {
-      if (!this.engine) {
-        throw new Error("No engine");
-      }
-
-      if (evt.button === 0) {
-        this.engine.enterPointerlock();
-      } else if (evt.button === 1) {
-        this.engine.exitPointerlock();
-        document.exitFullscreen();
-      }
-    };
-
     return camera;
   }
 
@@ -208,9 +195,6 @@ export default class App {
         if (!this.camera) {
           throw new Error("No camera");
         }
-
-        // Go into fullscreen
-        document.documentElement.requestFullscreen();
 
         // Add virtual joystick controls for touch only devices
         if (isTouchOnly()) {
