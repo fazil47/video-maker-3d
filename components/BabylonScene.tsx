@@ -41,6 +41,7 @@ export default function BabylonScene() {
         }
       };
 
+      resize();
       window.addEventListener("resize", resize);
 
       return () => {
@@ -77,9 +78,9 @@ export default function BabylonScene() {
       )}
       <canvas
         ref={renderCanvas}
-        className="w-full flex-grow rounded-md focus:outline-none"
+        className="rounded-md focus:outline-none"
         style={{
-          visibility: loaded ? "visible" : "hidden",
+          display: loaded ? "block" : "none",
         }}
       />
     </>
