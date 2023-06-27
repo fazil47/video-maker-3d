@@ -72,7 +72,7 @@ export default function BabylonScene() {
   return (
     <>
       {loaded ? null : (
-        <div className="fixed left-0 top-0 h-screen w-screen flex justify-center items-center p-4">
+        <div className="fixed left-0 top-0 h-screen w-screen flex justify-center items-center p-2">
           <p className="text-3xl font-bold">Loading...</p>
         </div>
       )}

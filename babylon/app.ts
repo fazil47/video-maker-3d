@@ -9,18 +9,10 @@ import {
   DirectionalLight,
   ShadowGenerator,
   Constants,
-  FreeCameraVirtualJoystickInput,
   ScenePerformancePriority,
   BoundingBox,
 } from "@babylonjs/core";
-import { AdvancedDynamicTexture, Control } from "@babylonjs/gui";
-// import { Inspector } from "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
-// import Assets from "@babylonjs/assets";
-
-import { isInPortrait, isTouchOnly } from "./utils";
-
-import EntryGUI from "./ui/EntryGUI.json" assert { type: "json" };
 
 export default class App {
   engine: WebGPUEngine | Engine | null = null;
@@ -56,11 +48,6 @@ export default class App {
 
     await this.createEnvironment();
     this.camera = this.createController();
-
-    this.createGUI();
-
-    // FIXME: Doesn't work with Next.js 13
-    // this.createInspector();
 
     // Event listener to resize the babylon engine when the window is resized
     window.addEventListener("resize", () => {
@@ -187,52 +174,6 @@ export default class App {
     return camera;
   }
 
-  createGUI(): void {
-    const adt = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-    adt.parseSerializedObject(EntryGUI);
-    const entryGUI = adt.getControlByName("EntryGUI") as Control;
-
-    // Show landscape instruction only on touch only devices
-    const landscapeInstructionText = adt.getControlByName(
-      "LandscapeInstructionText"
-    );
-    if (landscapeInstructionText) {
-      if (!isTouchOnly()) {
-        landscapeInstructionText.isVisible = false;
-      } else {
-        window.addEventListener("resize", function () {
-          landscapeInstructionText.isVisible = isInPortrait();
-        });
-
-        landscapeInstructionText.isVisible = isInPortrait();
-      }
-    }
-
-    const enterButton = adt.getControlByName("EnterButton");
-    if (enterButton) {
-      enterButton.onPointerClickObservable.add(() => {
-        if (!this.camera) {
-          throw new Error("No camera");
-        }
-
-        // Add virtual joystick controls for touch only devices
-        if (isTouchOnly()) {
-          this.camera.inputs.add(new FreeCameraVirtualJoystickInput());
-          const vJoystick = this.camera.inputs.attached["virtualJoystick"];
-          if (vJoystick && vJoystick.camera) {
-            vJoystick.camera.minZ = 0.45;
-            vJoystick.camera.speed = 0.25;
-            vJoystick.camera.angularSensibility = 12000;
-          }
-        }
-
-        // Hide entry GUI
-        entryGUI.isVisible = false;
-      });
-    }
-  }
-
   async createEnvironment(): Promise<void> {
     if (!this.scene) {
       throw new Error("No scene");
@@ -252,10 +193,6 @@ export default class App {
     const shadowGenerator1 = new ShadowGenerator(1024, light1);
     shadowGenerator1.filter = ShadowGenerator.FILTER_PCF;
 
-    // Gravity and collision
-    const framesPerSecond = 60;
-    // const gravity = -9.81;
-    // this.scene.gravity = new Vector3(0, gravity / framesPerSecond, 0);
     this.scene.collisionsEnabled = true;
 
     // Environment meshes
@@ -267,7 +204,7 @@ export default class App {
     );
     meshes.forEach((mesh) => {
       if (mesh.name === "Ramp" || mesh.name === "Ramp1") {
-        // Removc mesh
+        // Remove the ramps
         mesh.dispose();
         return;
       }
@@ -290,7 +227,6 @@ export default class App {
     );
 
     porsche.forEach((mesh) => {
-      // mesh.checkCollisions = true;
       mesh.receiveShadows = true;
       shadowGenerator1.addShadowCaster(mesh);
 
@@ -305,9 +241,6 @@ export default class App {
           mesh.getBoundingInfo().boundingBox.maximumWorld
         )
       );
-
-      // // Move up a bit
-      // mesh.position.y += 0.09;
     });
 
     // Make a transparent bounding box parent mesh for the porsche
@@ -335,29 +268,4 @@ export default class App {
 
     // this.resetSnapshot();
   }
-
-  // createInspector(): void {
-  //   if (!this.scene) {
-  //     throw new Error("No scene");
-  //   }
-
-  //   Inspector.Show(this.scene, {});
-  //   Inspector.Hide();
-
-  //   // Toggle Inspector visibility
-  //   window.addEventListener("keydown", (ev) => {
-  //     if (!this.scene) {
-  //       throw new Error("No scene");
-  //     }
-
-  //     // Shift + Ctrl + Alt + I
-  //     if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-  //       if (Inspector.IsVisible) {
-  //         Inspector.Hide();
-  //       } else {
-  //         Inspector.Show(this.scene, {});
-  //       }
-  //     }
-  //   });
-  // }
 }
