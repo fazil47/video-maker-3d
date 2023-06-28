@@ -11,9 +11,15 @@ import {
   Constants,
   ScenePerformancePriority,
   BoundingBox,
+  Color3,
   Material,
   ReflectionProbe,
   PBRMaterial,
+  CubeTexture,
+  HemisphericLight,
+  Color4,
+  ImageProcessingConfiguration,
+  StandardMaterial,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -49,7 +55,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.setPerformancePriority("aggressive");
+    this.setPerformancePriority("intermediate");
 
     this.camera = this.createController();
     await this.createEnvironment();
@@ -78,7 +84,9 @@ export default class App {
     this.setSnapshotMode("fast");
   }
 
-  setPerformancePriority(priority: string) {
+  setPerformancePriority(
+    priority: "aggressive" | "intermediate" | "compatible"
+  ) {
     if (!this.scene) {
       throw new Error("No scene");
     }
@@ -90,7 +98,7 @@ export default class App {
       case "intermediate":
         this.scene.performancePriority = ScenePerformancePriority.Intermediate;
         break;
-      case "backwardCompatible":
+      case "compatible":
       default:
         this.scene.performancePriority =
           ScenePerformancePriority.BackwardCompatible;
@@ -147,19 +155,32 @@ export default class App {
     camera.setTarget(Vector3.Zero());
     camera.attachControl(this.canvas, true);
 
-    camera.applyGravity = true;
+    camera.applyGravity = false;
     camera.checkCollisions = true;
     camera.ellipsoid = new Vector3(1, 1, 1); // Camera collider
 
     camera.minZ = 0.45;
-    camera.speed = 0.25;
     camera.angularSensibility = 4000;
+
+    camera.speed = 0.25;
+    addEventListener("keydown", (event: KeyboardEvent) => {
+      if (event.key === "Shift") {
+        camera.speed = 0.5;
+      }
+    });
+    addEventListener("keyup", (event: KeyboardEvent) => {
+      if (event.key === "Shift") {
+        camera.speed = 0.25;
+      }
+    });
 
     // Add keyboard controls
     camera.keysUp.push(87); // W
     camera.keysLeft.push(65); // A
     camera.keysDown.push(83); // S
     camera.keysRight.push(68); // D
+    camera.keysUpward.push(69); // E
+    camera.keysDownward.push(81); // Q
 
     this.scene.onPointerDown = (evt) => {
       if (!this.engine) {
@@ -190,35 +211,58 @@ export default class App {
     }
 
     this.scene.shadowsEnabled = true;
+    this.scene.collisionsEnabled = true;
 
-    // Light 1
-    const light1 = new DirectionalLight(
-      "light1",
+    // Setup directional light based on sun position in skyMaterial
+    const skySun = new DirectionalLight(
+      "skySun",
       new Vector3(0, 0, 0),
       this.scene
     );
-    light1.direction = new Vector3(-0.713, -0.328, 0.619);
-    light1.intensity = 2;
-    light1.shadowEnabled = true;
-    const shadowGenerator1 = new ShadowGenerator(1024, light1);
-    shadowGenerator1.filter = ShadowGenerator.FILTER_PCF;
+    skySun.direction = new Vector3(-0.95, -0.28, 0.11);
+    skySun.intensity = 4;
+    skySun.shadowEnabled = true;
+    skySun.autoCalcShadowZBounds = true;
+    const sunShadowGenerator = new ShadowGenerator(1024, skySun);
+    sunShadowGenerator.setDarkness(0);
+    sunShadowGenerator.filter = ShadowGenerator.FILTER_PCF;
 
-    this.scene.collisionsEnabled = true;
-
+    // Create skybox material
     const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
     skyMaterial.backFaceCulling = false;
 
-    // Set sky material to day
-    skyMaterial.inclination = -0.35;
+    // Set sky material sun position based on skySun direction
+    skyMaterial.useSunPosition = true;
+    skyMaterial.sunPosition = skySun.direction.scale(-1);
 
-    const skybox = MeshBuilder.CreateBox("skyBox", { size: 100.0 }, this.scene);
+    // TODO: Adjust parameters to make the sky look better
+    skyMaterial.luminance = 0.5;
+
+    // Create skybox mesh
+    const skybox = MeshBuilder.CreateBox(
+      "skyBox",
+      { size: 1000.0 },
+      this.scene
+    );
     skybox.material = skyMaterial;
+    skybox.infiniteDistance = true;
 
-    // // Skybox reflection probe
-    // const reflectionProbe = new ReflectionProbe("main", 512, this.scene);
-    // reflectionProbe.renderList?.push(skybox);
+    // Create texture from skyMaterial using reflection probe
+    const reflectionProbe = new ReflectionProbe("ref", 512, this.scene);
+    reflectionProbe.renderList?.push(skybox);
 
-    this.scene.createDefaultEnvironment();
+    // Set environment texture to reflection probe cube texture
+    this.scene.environmentTexture = reflectionProbe.cubeTexture;
+    this.scene.environmentIntensity = 1;
+
+    // Calculate ambient color based on skyMaterial inclination
+    const skyAmbientColor = new Color3(0.5, 0.5, 0.5);
+
+    this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
+    this.scene.imageProcessingConfiguration.toneMappingType =
+      ImageProcessingConfiguration.TONEMAPPING_ACES;
+    this.scene.clearColor = new Color4(1, 1, 1, 1);
+    this.scene.ambientColor = skyAmbientColor;
 
     // Environment meshes
     const { meshes } = await SceneLoader.ImportMeshAsync(
@@ -235,7 +279,17 @@ export default class App {
       }
       mesh.checkCollisions = true;
       mesh.receiveShadows = true;
-      shadowGenerator1.addShadowCaster(mesh);
+
+      if (mesh.material) {
+        if (
+          mesh.material instanceof PBRMaterial ||
+          mesh.material instanceof StandardMaterial
+        ) {
+          mesh.material.ambientColor = skyAmbientColor;
+        }
+      }
+
+      sunShadowGenerator.addShadowCaster(mesh);
     });
 
     // Porsche
@@ -253,7 +307,7 @@ export default class App {
 
     porsche.forEach((mesh) => {
       mesh.receiveShadows = true;
-      shadowGenerator1.addShadowCaster(mesh);
+      sunShadowGenerator.addShadowCaster(mesh);
 
       // Expand the bounding box
       porscheBoundingBox.reConstruct(
