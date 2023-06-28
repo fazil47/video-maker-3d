@@ -226,6 +226,8 @@ export default class App {
     const sunShadowGenerator = new ShadowGenerator(1024, skySun);
     sunShadowGenerator.setDarkness(0);
     sunShadowGenerator.filter = ShadowGenerator.FILTER_PCF;
+    sunShadowGenerator.normalBias = 0.15;
+    sunShadowGenerator.transparencyShadow = true;
 
     // Create skybox material
     const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
@@ -253,7 +255,7 @@ export default class App {
 
     // Set environment texture to reflection probe cube texture
     this.scene.environmentTexture = reflectionProbe.cubeTexture;
-    this.scene.environmentIntensity = 1;
+    this.scene.environmentIntensity = 2;
 
     // Calculate ambient color based on skyMaterial inclination
     const skyAmbientColor = new Color3(0.5, 0.5, 0.5);
