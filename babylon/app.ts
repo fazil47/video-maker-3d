@@ -11,7 +11,11 @@ import {
   Constants,
   ScenePerformancePriority,
   BoundingBox,
+  Material,
+  ReflectionProbe,
+  PBRMaterial,
 } from "@babylonjs/core";
+import { SkyMaterial } from "@babylonjs/materials";
 import "@babylonjs/loaders/glTF";
 
 export default class App {
@@ -46,8 +50,8 @@ export default class App {
     this.scene = new Scene(this.engine);
     this.setPerformancePriority("aggressive");
 
-    await this.createEnvironment();
     this.camera = this.createController();
+    await this.createEnvironment();
 
     // Event listener to resize the babylon engine when the window is resized
     window.addEventListener("resize", () => {
@@ -195,6 +199,21 @@ export default class App {
 
     this.scene.collisionsEnabled = true;
 
+    const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
+    skyMaterial.backFaceCulling = false;
+
+    // Set sky material to day
+    skyMaterial.inclination = -0.35;
+
+    const skybox = MeshBuilder.CreateBox("skyBox", { size: 100.0 }, this.scene);
+    skybox.material = skyMaterial;
+
+    // // Skybox reflection probe
+    // const reflectionProbe = new ReflectionProbe("main", 512, this.scene);
+    // reflectionProbe.renderList?.push(skybox);
+
+    this.scene.createDefaultEnvironment();
+
     // Environment meshes
     const { meshes } = await SceneLoader.ImportMeshAsync(
       "",
@@ -263,8 +282,6 @@ export default class App {
     porscheBoundingBoxMesh.isPickable = true;
     // porscheBoundingBoxMesh.checkCollisions = true;
     porscheBoundingBoxMesh.position.y += 0.09;
-
-    this.scene.createDefaultEnvironment();
 
     // this.resetSnapshot();
   }
