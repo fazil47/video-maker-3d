@@ -16,6 +16,7 @@ import {
   PBRMaterial,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
+import { Inspector } from "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 
 export default class App {
@@ -52,6 +53,11 @@ export default class App {
 
     this.camera = this.createController();
     await this.createEnvironment();
+
+    // Create inspector if in development mode
+    if (process.env.NODE_ENV === "development") {
+      this.createInspector();
+    }
 
     // Event listener to resize the babylon engine when the window is resized
     window.addEventListener("resize", () => {
@@ -284,5 +290,30 @@ export default class App {
     porscheBoundingBoxMesh.position.y += 0.09;
 
     // this.resetSnapshot();
+  }
+
+  createInspector(): void {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    Inspector.Show(this.scene, {});
+    Inspector.Hide();
+
+    // Toggle Inspector visibility
+    window.addEventListener("keydown", (ev) => {
+      if (!this.scene) {
+        throw new Error("No scene");
+      }
+
+      // Shift + Ctrl + Alt + I
+      if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+        if (Inspector.IsVisible) {
+          Inspector.Hide();
+        } else {
+          Inspector.Show(this.scene, {});
+        }
+      }
+    });
   }
 }
