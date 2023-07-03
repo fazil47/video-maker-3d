@@ -17,7 +17,7 @@ import {
   ImageProcessingConfiguration,
   StandardMaterial,
   Quaternion,
-  CascadedShadowGenerator,
+  ShadowGenerator,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -53,7 +53,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.setPerformancePriority("intermediate");
+    this.setPerformancePriority("compatible");
 
     this.camera = this.createController();
     await this.createEnvironment();
@@ -218,14 +218,13 @@ export default class App {
       this.scene
     );
     skySun.direction = new Vector3(-0.95, -0.28, 0.11);
-    skySun.intensity = 4;
+    skySun.intensity = 2;
     skySun.shadowEnabled = true;
-    const sunShadowGenerator = new CascadedShadowGenerator(1024, skySun);
-    sunShadowGenerator.autoCalcDepthBounds = true;
+    skySun.autoCalcShadowZBounds = true;
+    const sunShadowGenerator = new ShadowGenerator(1024, skySun);
     sunShadowGenerator.setDarkness(0);
-    sunShadowGenerator.filter = CascadedShadowGenerator.FILTER_PCF;
-    sunShadowGenerator.filteringQuality = CascadedShadowGenerator.QUALITY_LOW;
-    sunShadowGenerator.normalBias = 0.06;
+    sunShadowGenerator.filter =
+      ShadowGenerator.FILTER_BLURCLOSEEXPONENTIALSHADOWMAP;
     sunShadowGenerator.transparencyShadow = true;
 
     // Create skybox material
@@ -236,17 +235,17 @@ export default class App {
     skyMaterial.useSunPosition = true;
     skyMaterial.sunPosition = skySun.direction.scale(-1);
 
-    // // TODO: Replace with night sky when sun is below horizon
-    // // Update skySun direction and skyMaterial sun position every frame
-    // this.scene.registerBeforeRender(() => {
-    //   if (!this.scene) {
-    //     throw new Error("No scene");
-    //   }
-    //   skySun.direction.applyRotationQuaternionInPlace(
-    //     Quaternion.RotationAxis(Vector3.Forward(), 0.001)
-    //   );
-    //   skyMaterial.sunPosition = skySun.direction.scale(-1);
-    // });
+    // TODO: Replace with night sky when sun is below horizon
+    // Temporary visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
+    this.scene.registerBeforeRender(() => {
+      if (!this.scene) {
+        throw new Error("No scene");
+      }
+      skySun.direction.applyRotationQuaternionInPlace(
+        Quaternion.RotationAxis(Vector3.Forward(), 0.001)
+      );
+      skyMaterial.sunPosition = skySun.direction.scale(-1);
+    });
 
     // TODO: Adjust parameters to make the sky look better
     skyMaterial.luminance = 0.5;
