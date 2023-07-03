@@ -292,12 +292,13 @@ export default class App {
       mesh.checkCollisions = true;
       mesh.receiveShadows = true;
 
+      // Set base ambient color to white
       if (mesh.material) {
         if (
           mesh.material instanceof PBRMaterial ||
           mesh.material instanceof StandardMaterial
         ) {
-          mesh.material.ambientColor = skyAmbientColor;
+          mesh.material.ambientColor = new Color3(1, 1, 1);
         }
       }
 
@@ -320,6 +321,16 @@ export default class App {
     porsche.forEach((mesh) => {
       mesh.receiveShadows = true;
       sunShadowGenerator.addShadowCaster(mesh);
+
+      // Set base ambient color to white
+      if (mesh.material) {
+        if (
+          mesh.material instanceof PBRMaterial ||
+          mesh.material instanceof StandardMaterial
+        ) {
+          mesh.material.ambientColor = new Color3(1, 1, 1);
+        }
+      }
 
       // Expand the bounding box
       porscheBoundingBox.reConstruct(
