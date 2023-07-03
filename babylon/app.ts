@@ -7,19 +7,17 @@ import {
   SceneLoader,
   FreeCamera,
   DirectionalLight,
-  ShadowGenerator,
   Constants,
   ScenePerformancePriority,
   BoundingBox,
   Color3,
-  Material,
   ReflectionProbe,
   PBRMaterial,
-  CubeTexture,
-  HemisphericLight,
   Color4,
   ImageProcessingConfiguration,
   StandardMaterial,
+  Quaternion,
+  CascadedShadowGenerator,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -105,7 +103,7 @@ export default class App {
     }
   }
 
-  setSnapshotMode(mode: string) {
+  setSnapshotMode(mode: "disabled" | "standard" | "fast") {
     if (!this.scene) {
       throw new Error("No scene");
     }
@@ -222,11 +220,12 @@ export default class App {
     skySun.direction = new Vector3(-0.95, -0.28, 0.11);
     skySun.intensity = 4;
     skySun.shadowEnabled = true;
-    skySun.autoCalcShadowZBounds = true;
-    const sunShadowGenerator = new ShadowGenerator(1024, skySun);
+    const sunShadowGenerator = new CascadedShadowGenerator(1024, skySun);
+    sunShadowGenerator.autoCalcDepthBounds = true;
     sunShadowGenerator.setDarkness(0);
-    sunShadowGenerator.filter = ShadowGenerator.FILTER_PCF;
-    sunShadowGenerator.normalBias = 0.15;
+    sunShadowGenerator.filter = CascadedShadowGenerator.FILTER_PCF;
+    sunShadowGenerator.filteringQuality = CascadedShadowGenerator.QUALITY_LOW;
+    sunShadowGenerator.normalBias = 0.06;
     sunShadowGenerator.transparencyShadow = true;
 
     // Create skybox material
@@ -236,6 +235,18 @@ export default class App {
     // Set sky material sun position based on skySun direction
     skyMaterial.useSunPosition = true;
     skyMaterial.sunPosition = skySun.direction.scale(-1);
+
+    // // TODO: Replace with night sky when sun is below horizon
+    // // Update skySun direction and skyMaterial sun position every frame
+    // this.scene.registerBeforeRender(() => {
+    //   if (!this.scene) {
+    //     throw new Error("No scene");
+    //   }
+    //   skySun.direction.applyRotationQuaternionInPlace(
+    //     Quaternion.RotationAxis(Vector3.Forward(), 0.001)
+    //   );
+    //   skyMaterial.sunPosition = skySun.direction.scale(-1);
+    // });
 
     // TODO: Adjust parameters to make the sky look better
     skyMaterial.luminance = 0.5;
