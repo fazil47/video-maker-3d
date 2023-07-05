@@ -18,6 +18,7 @@ import {
   StandardMaterial,
   Quaternion,
   ShadowGenerator,
+  RenderTargetTexture,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -53,7 +54,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.setPerformancePriority("compatible");
+    this.setPerformancePriority("intermediate");
 
     this.camera = this.createController();
     await this.createEnvironment();
@@ -154,7 +155,7 @@ export default class App {
     camera.attachControl(this.canvas, true);
 
     camera.applyGravity = false;
-    camera.checkCollisions = true;
+    camera.checkCollisions = false;
     camera.ellipsoid = new Vector3(1, 1, 1); // Camera collider
 
     camera.minZ = 0.45;
@@ -209,7 +210,7 @@ export default class App {
     }
 
     this.scene.shadowsEnabled = true;
-    this.scene.collisionsEnabled = true;
+    this.scene.collisionsEnabled = false;
 
     // Setup directional light based on sun position in skyMaterial
     const skySun = new DirectionalLight(
@@ -217,7 +218,7 @@ export default class App {
       new Vector3(0, 0, 0),
       this.scene
     );
-    skySun.direction = new Vector3(-0.95, -0.28, 0.11);
+    skySun.direction = new Vector3(-0.95, -0.28, 0);
     skySun.intensity = 2;
     skySun.shadowEnabled = true;
     skySun.autoCalcShadowZBounds = true;
@@ -236,19 +237,27 @@ export default class App {
     skyMaterial.sunPosition = skySun.direction.scale(-1);
 
     // TODO: Replace with night sky when sun is below horizon
-    // Temporary visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
+    // Visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
+    let quaternionDelta = 0.001;
     this.scene.registerBeforeRender(() => {
       if (!this.scene) {
         throw new Error("No scene");
       }
       skySun.direction.applyRotationQuaternionInPlace(
-        Quaternion.RotationAxis(Vector3.Forward(), 0.001)
+        Quaternion.RotationAxis(Vector3.Forward(), quaternionDelta)
       );
       skyMaterial.sunPosition = skySun.direction.scale(-1);
+
+      // If sun is below horizon, rotate in opposite direction
+      if (skySun.direction.y > 0) {
+        quaternionDelta *= -1;
+      }
     });
 
     // TODO: Adjust parameters to make the sky look better
-    skyMaterial.luminance = 0.5;
+    skyMaterial.luminance = 1;
+    skyMaterial.turbidity = 4;
+    skyMaterial.cameraOffset.y = 50;
 
     // Create skybox mesh
     const skybox = MeshBuilder.CreateBox(
@@ -262,6 +271,9 @@ export default class App {
     // Create texture from skyMaterial using reflection probe
     const reflectionProbe = new ReflectionProbe("ref", 512, this.scene);
     reflectionProbe.renderList?.push(skybox);
+    // TODO: Set to refresh once and then update only when sun position changes
+    reflectionProbe.refreshRate =
+      RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES;
 
     // Set environment texture to reflection probe cube texture
     this.scene.environmentTexture = reflectionProbe.cubeTexture;
