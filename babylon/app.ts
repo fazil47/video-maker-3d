@@ -80,7 +80,7 @@ export default class App {
       this.scene.render();
     });
 
-    this.setSnapshotMode("fast");
+    this.setSnapshotMode("standard");
   }
 
   setPerformancePriority(
