@@ -204,6 +204,13 @@ export default class App {
     return camera;
   }
 
+  rotateSun(skySun: DirectionalLight, skyMaterial: SkyMaterial, angle: number) {
+    skySun.direction.applyRotationQuaternionInPlace(
+      Quaternion.RotationAxis(Vector3.Forward(), angle)
+    );
+    skyMaterial.sunPosition = skySun.direction.scale(-1);
+  }
+
   async createEnvironment(): Promise<void> {
     if (!this.scene) {
       throw new Error("No scene");
@@ -246,16 +253,10 @@ export default class App {
       }
     });
     this.scene.registerBeforeRender(() => {
-      if (!this.scene) {
-        throw new Error("No scene");
-      }
       if (!isEnabled) {
         return;
       }
-      skySun.direction.applyRotationQuaternionInPlace(
-        Quaternion.RotationAxis(Vector3.Forward(), quaternionDelta)
-      );
-      skyMaterial.sunPosition = skySun.direction.scale(-1);
+      this.rotateSun(skySun, skyMaterial, quaternionDelta);
 
       // If sun is below horizon, rotate in opposite direction
       if (skySun.direction.y > 0) {
@@ -264,12 +265,46 @@ export default class App {
     });
 
     // TODO: Adjust parameters to make the sky look better
-    skyMaterial.luminance = 1;
+    skyMaterial.luminance = 0.4;
     skyMaterial.turbidity = 2;
     skyMaterial.rayleigh = 4;
     skyMaterial.mieCoefficient = 0.005;
     skyMaterial.mieDirectionalG = 0.98;
     skyMaterial.cameraOffset.y = 50;
+    skyMaterial.distance = 100;
+
+    // Setup event listener to modify skyMaterial
+    addEventListener("keydown", (event: KeyboardEvent) => {
+      if (event.key === "ArrowUp") {
+        skyMaterial.cameraOffset.y += 1;
+      } else if (event.key === "ArrowDown") {
+        skyMaterial.cameraOffset.y -= 1;
+      } else if (event.key === "ArrowLeft") {
+        skyMaterial.distance -= 1;
+      } else if (event.key === "ArrowRight") {
+        skyMaterial.distance += 1;
+      } else if (event.key === "PageUp") {
+        skyMaterial.luminance += 0.1;
+      } else if (event.key === "PageDown") {
+        skyMaterial.luminance -= 0.1;
+      } else if (event.key === "Home") {
+        skyMaterial.turbidity += 0.1;
+      } else if (event.key === "End") {
+        skyMaterial.turbidity -= 0.1;
+      } else if (event.key === "Insert") {
+        skyMaterial.rayleigh += 0.1;
+      } else if (event.key === "Delete") {
+        skyMaterial.rayleigh -= 0.1;
+      } else if (event.key === "1") {
+        skyMaterial.mieCoefficient += 0.001;
+      } else if (event.key === "2") {
+        skyMaterial.mieCoefficient -= 0.001;
+      } else if (event.key === "3") {
+        skyMaterial.mieDirectionalG += 0.01;
+      } else if (event.key === "4") {
+        skyMaterial.mieDirectionalG -= 0.01;
+      }
+    });
 
     // Create skybox mesh
     const skybox = MeshBuilder.CreateBox(
@@ -291,8 +326,8 @@ export default class App {
     this.scene.environmentTexture = reflectionProbe.cubeTexture;
     this.scene.environmentIntensity = 2;
 
-    // Calculate ambient color based on skyMaterial inclination
-    const skyAmbientColor = new Color3(0.5, 0.5, 0.5);
+    // Set scene ambient color to a bright color
+    const skyAmbientColor = new Color3(0.8, 0.8, 0.8);
 
     this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
     this.scene.imageProcessingConfiguration.toneMappingType =
