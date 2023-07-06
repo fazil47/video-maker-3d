@@ -239,9 +239,18 @@ export default class App {
     // TODO: Replace with night sky when sun is below horizon
     // Visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
     let quaternionDelta = 0.001;
+    let isEnabled = true;
+    addEventListener("keydown", (event: KeyboardEvent) => {
+      if (event.key === " ") {
+        isEnabled = !isEnabled;
+      }
+    });
     this.scene.registerBeforeRender(() => {
       if (!this.scene) {
         throw new Error("No scene");
+      }
+      if (!isEnabled) {
+        return;
       }
       skySun.direction.applyRotationQuaternionInPlace(
         Quaternion.RotationAxis(Vector3.Forward(), quaternionDelta)
@@ -256,7 +265,10 @@ export default class App {
 
     // TODO: Adjust parameters to make the sky look better
     skyMaterial.luminance = 1;
-    skyMaterial.turbidity = 4;
+    skyMaterial.turbidity = 2;
+    skyMaterial.rayleigh = 4;
+    skyMaterial.mieCoefficient = 0.005;
+    skyMaterial.mieDirectionalG = 0.98;
     skyMaterial.cameraOffset.y = 50;
 
     // Create skybox mesh
