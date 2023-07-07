@@ -229,6 +229,11 @@ export default class App {
     skySun.intensity = 2;
     skySun.shadowEnabled = true;
     skySun.autoCalcShadowZBounds = true;
+
+    // TODO: skySun color should be based on inclination
+    const skyAmbientColor = new Color3(0.8, 0.8, 0.8); // Set scene ambient color to a bright color
+
+    // Setup directional light shadow generator
     const sunShadowGenerator = new ShadowGenerator(1024, skySun);
     sunShadowGenerator.setDarkness(0);
     sunShadowGenerator.filter =
@@ -264,7 +269,6 @@ export default class App {
       }
     });
 
-    // TODO: Adjust parameters to make the sky look better
     skyMaterial.luminance = 0.4;
     skyMaterial.turbidity = 2;
     skyMaterial.rayleigh = 4;
@@ -325,9 +329,6 @@ export default class App {
     // Set environment texture to reflection probe cube texture
     this.scene.environmentTexture = reflectionProbe.cubeTexture;
     this.scene.environmentIntensity = 2;
-
-    // Set scene ambient color to a bright color
-    const skyAmbientColor = new Color3(0.8, 0.8, 0.8);
 
     this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
     this.scene.imageProcessingConfiguration.toneMappingType =
