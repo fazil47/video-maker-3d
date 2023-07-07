@@ -279,33 +279,33 @@ export default class App {
 
     // Setup event listener to modify skyMaterial
     addEventListener("keydown", (event: KeyboardEvent) => {
-      if (event.key === "ArrowUp") {
+      if (event.key === "1") {
         skyMaterial.cameraOffset.y += 1;
-      } else if (event.key === "ArrowDown") {
-        skyMaterial.cameraOffset.y -= 1;
-      } else if (event.key === "ArrowLeft") {
-        skyMaterial.distance -= 1;
-      } else if (event.key === "ArrowRight") {
-        skyMaterial.distance += 1;
-      } else if (event.key === "PageUp") {
-        skyMaterial.luminance += 0.1;
-      } else if (event.key === "PageDown") {
-        skyMaterial.luminance -= 0.1;
-      } else if (event.key === "Home") {
-        skyMaterial.turbidity += 0.1;
-      } else if (event.key === "End") {
-        skyMaterial.turbidity -= 0.1;
-      } else if (event.key === "Insert") {
-        skyMaterial.rayleigh += 0.1;
-      } else if (event.key === "Delete") {
-        skyMaterial.rayleigh -= 0.1;
-      } else if (event.key === "1") {
-        skyMaterial.mieCoefficient += 0.001;
       } else if (event.key === "2") {
-        skyMaterial.mieCoefficient -= 0.001;
+        skyMaterial.cameraOffset.y -= 1;
       } else if (event.key === "3") {
-        skyMaterial.mieDirectionalG += 0.01;
+        skyMaterial.distance -= 1;
       } else if (event.key === "4") {
+        skyMaterial.distance += 1;
+      } else if (event.key === "5") {
+        skyMaterial.luminance += 0.1;
+      } else if (event.key === "6") {
+        skyMaterial.luminance -= 0.1;
+      } else if (event.key === "7") {
+        skyMaterial.turbidity += 0.1;
+      } else if (event.key === "8") {
+        skyMaterial.turbidity -= 0.1;
+      } else if (event.key === "9") {
+        skyMaterial.rayleigh += 0.1;
+      } else if (event.key === "0") {
+        skyMaterial.rayleigh -= 0.1;
+      } else if (event.key === "u") {
+        skyMaterial.mieCoefficient += 0.001;
+      } else if (event.key === "i") {
+        skyMaterial.mieCoefficient -= 0.001;
+      } else if (event.key === "o") {
+        skyMaterial.mieDirectionalG += 0.01;
+      } else if (event.key === "p") {
         skyMaterial.mieDirectionalG -= 0.01;
       }
     });
