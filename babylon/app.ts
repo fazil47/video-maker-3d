@@ -212,7 +212,7 @@ export default class App {
   getSunColor(sunElevation: number): Color3 {
     // Sun color is dim white when elevation is near 0, orange at sunrise and sunset and proper white for the rest of the day.
     const sunriseSunsetColor = new Color3(1, 0.65, 0); // Orange color
-    const daySkyColor = new Color3(0.8, 0.8, 0.8); // White color
+    const daySkyColor = new Color3(0.6, 0.6, 0.6); // White color
     const dimWhiteSkyColor = new Color3(0.4, 0.4, 0.4); // Dim white color
 
     const sunriseSunsetThreshold = 0.2; // Elevation angle threshold for sunrise/sunset
@@ -287,7 +287,7 @@ export default class App {
 
     // TODO: Replace with night sky when sun is below horizon
     // Visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
-    let quaternionDelta = 0.001;
+    let quaternionDelta = 0.002;
     let isEnabled = true;
     addEventListener("keydown", (event: KeyboardEvent) => {
       if (event.key === " ") {
@@ -359,7 +359,7 @@ export default class App {
     // Create texture from skyMaterial using reflection probe
     // TODO: Should I disable mipmaps?
     // TODO: Maybe increase resolution?
-    const reflectionProbe = new ReflectionProbe("ref", 2, this.scene, false);
+    const reflectionProbe = new ReflectionProbe("ref", 8, this.scene, false);
     reflectionProbe.renderList?.push(skybox);
     // TODO: Set to refresh once and then update only when sun position changes
     reflectionProbe.refreshRate =
@@ -483,7 +483,7 @@ export default class App {
       }
 
       // Shift + Ctrl + Alt + I
-      if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+      if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.code === "KeyI") {
         if (Inspector.IsVisible) {
           Inspector.Hide();
         } else {
