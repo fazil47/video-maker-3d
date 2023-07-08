@@ -204,11 +204,48 @@ export default class App {
     return camera;
   }
 
+  /**
+   * Returns the sun color based on the elevation.
+   * @param sunElevation The sun's elevation, 0 at sunrise and sunset, 1 at noon.
+   * @returns The calculated sun color.
+   */
+  getSunColor(sunElevation: number): Color3 {
+    // Sun color is dim white when elevation is near 0, orange at sunrise and sunset and proper white for the rest of the day.
+    const sunriseSunsetColor = new Color3(1, 0.65, 0); // Orange color
+    const daySkyColor = new Color3(0.8, 0.8, 0.8); // White color
+    const dimWhiteSkyColor = new Color3(0.4, 0.4, 0.4); // Dim white color
+
+    const sunriseSunsetThreshold = 0.2; // Elevation angle threshold for sunrise/sunset
+
+    if (sunElevation <= sunriseSunsetThreshold) {
+      // Interpolate between dim white, orange, and white based on elevation angle
+      const t = sunElevation / sunriseSunsetThreshold;
+      const interpolatedColor = interpolateColors(
+        dimWhiteSkyColor,
+        sunriseSunsetColor,
+        daySkyColor,
+        t
+      );
+      return interpolatedColor;
+    } else {
+      // Return the white color for the rest of the time
+      return daySkyColor;
+    }
+  }
+
   rotateSun(skySun: DirectionalLight, skyMaterial: SkyMaterial, angle: number) {
+    // skySun.direction.y goes from 0 at sunrise and sunset to -1 at noon
+
+    // Rotate sun around the y axis and set sun position to the inverse of the direction
     skySun.direction.applyRotationQuaternionInPlace(
       Quaternion.RotationAxis(Vector3.Forward(), angle)
     );
     skyMaterial.sunPosition = skySun.direction.scale(-1);
+
+    // Set sun color based on sun position
+    const sunColor = this.getSunColor(Math.abs(skySun.direction.y));
+    skySun.diffuse = sunColor;
+    this.scene!.ambientColor = sunColor;
   }
 
   async createEnvironment(): Promise<void> {
@@ -320,7 +357,9 @@ export default class App {
     skybox.infiniteDistance = true;
 
     // Create texture from skyMaterial using reflection probe
-    const reflectionProbe = new ReflectionProbe("ref", 512, this.scene);
+    // TODO: Should I disable mipmaps?
+    // TODO: Maybe increase resolution?
+    const reflectionProbe = new ReflectionProbe("ref", 2, this.scene, false);
     reflectionProbe.renderList?.push(skybox);
     // TODO: Set to refresh once and then update only when sun position changes
     reflectionProbe.refreshRate =
@@ -453,4 +492,34 @@ export default class App {
       }
     });
   }
+}
+
+/**
+ * Interpolate between 3 colors
+ * @param color1 The first color
+ * @param color2 The second color
+ * @param color3 The third color
+ * @param t The interpolation value
+ * @returns The interpolated color
+ */
+function interpolateColors(
+  color1: Color3,
+  color2: Color3,
+  color3: Color3,
+  t: number
+) {
+  // Perform linear interpolation between color1 and color2
+  const interpolatedColor12 = Color3.Lerp(color1, color2, t);
+
+  // Perform linear interpolation between color2 and color3
+  const interpolatedColor23 = Color3.Lerp(color2, color3, t);
+
+  // Perform linear interpolation between interpolatedColor12 and interpolatedColor23
+  const finalInterpolatedColor = Color3.Lerp(
+    interpolatedColor12,
+    interpolatedColor23,
+    t
+  );
+
+  return finalInterpolatedColor;
 }
