@@ -19,6 +19,8 @@ import {
   Quaternion,
   ShadowGenerator,
   RenderTargetTexture,
+  SSAO2RenderingPipeline,
+  SSRRenderingPipeline,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -256,6 +258,48 @@ export default class App {
     this.scene.shadowsEnabled = true;
     this.scene.collisionsEnabled = false;
 
+    // Screen space post-processes effects
+    if (this.camera) {
+      if (SSAO2RenderingPipeline.IsSupported) {
+        const ssao = new SSAO2RenderingPipeline(
+          "ssao", // The name of the pipeline
+          this.scene, // The scene to which the pipeline belongs
+          0.5, // The size of the postprocess
+          [this.camera] // The list of cameras to be attached to
+        );
+
+        ssao.radius = 1;
+        ssao.totalStrength = 1.3;
+        ssao.expensiveBlur = true;
+        ssao.samples = 16;
+        ssao.maxZ = 250;
+      }
+
+      const ssr = new SSRRenderingPipeline(
+        "ssr", // The name of the pipeline
+        this.scene, // The scene to which the pipeline belongs
+        [this.camera], // The list of cameras to attach the pipeline to
+        false, // Whether or not to use the geometry buffer renderer (default: false, use the pre-pass renderer)
+        Constants.TEXTURETYPE_UNSIGNED_BYTE // The texture type used by the SSR effect (default: TEXTURETYPE_UNSIGNED_BYTE)
+      );
+
+      ssr.thickness = 0.1;
+      ssr.selfCollisionNumSkip = 2;
+      ssr.enableAutomaticThicknessComputation = false;
+      ssr.blurDispersionStrength = 0.02;
+      ssr.roughnessFactor = 0.05;
+      ssr.enableSmoothReflections = true;
+      ssr.step = 20;
+      ssr.maxSteps = 100;
+      ssr.maxDistance = 1000;
+      ssr.blurDownsample = 1;
+      ssr.ssrDownsample = 1;
+
+      // Set ssr to false by default because of it's performance impact
+      // TODO: Doesn't work when toggled with intermediate optimization
+      ssr.isEnabled = false;
+    }
+
     // Setup directional light based on sun position in skyMaterial
     const skySun = new DirectionalLight(
       "skySun",
@@ -307,23 +351,22 @@ export default class App {
     });
 
     skyMaterial.luminance = 0.4;
-    skyMaterial.turbidity = 2;
+    skyMaterial.turbidity = 10;
     skyMaterial.rayleigh = 4;
     skyMaterial.mieCoefficient = 0.005;
     skyMaterial.mieDirectionalG = 0.98;
-    skyMaterial.cameraOffset.y = 50;
-    skyMaterial.distance = 100;
+    // skyMaterial.cameraOffset.y = 50;
 
     // Setup event listener to modify skyMaterial
     addEventListener("keydown", (event: KeyboardEvent) => {
       if (event.key === "1") {
-        skyMaterial.cameraOffset.y += 1;
+        skyMaterial.cameraOffset.y += 10;
       } else if (event.key === "2") {
-        skyMaterial.cameraOffset.y -= 1;
+        skyMaterial.cameraOffset.y -= 10;
       } else if (event.key === "3") {
-        skyMaterial.distance -= 1;
+        skyMaterial.distance -= 100;
       } else if (event.key === "4") {
-        skyMaterial.distance += 1;
+        skyMaterial.distance += 100;
       } else if (event.key === "5") {
         skyMaterial.luminance += 0.1;
       } else if (event.key === "6") {
