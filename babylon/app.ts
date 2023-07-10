@@ -21,6 +21,7 @@ import {
   RenderTargetTexture,
   SSAO2RenderingPipeline,
   SSRRenderingPipeline,
+  DefaultRenderingPipeline,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -258,8 +259,17 @@ export default class App {
     this.scene.shadowsEnabled = true;
     this.scene.collisionsEnabled = false;
 
-    // Screen space post-processes effects
+    // Apply post-processes effects
     if (this.camera) {
+      const defaultPipeline = new DefaultRenderingPipeline(
+        "default",
+        false,
+        this.scene,
+        [this.camera]
+      );
+      defaultPipeline.fxaaEnabled = true;
+      defaultPipeline.sharpenEnabled = true;
+
       if (SSAO2RenderingPipeline.IsSupported) {
         const ssao = new SSAO2RenderingPipeline(
           "ssao", // The name of the pipeline
