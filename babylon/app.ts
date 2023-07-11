@@ -22,6 +22,9 @@ import {
   SSAO2RenderingPipeline,
   SSRRenderingPipeline,
   DefaultRenderingPipeline,
+  UtilityLayerRenderer,
+  GizmoManager,
+  Mesh,
 } from "@babylonjs/core";
 import { SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -32,6 +35,7 @@ export default class App {
   scene: Scene | null = null;
   canvas: HTMLCanvasElement | null = null;
   camera: FreeCamera | null = null;
+  gizmoManager: GizmoManager | null = null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -60,6 +64,7 @@ export default class App {
     this.setPerformancePriority("intermediate");
 
     this.camera = this.createController();
+    this.gizmoManager = this.createGizmoManager();
     await this.createEnvironment();
 
     // Create inspector if in development mode
@@ -251,9 +256,30 @@ export default class App {
     this.scene!.ambientColor = sunColor;
   }
 
+  createGizmoManager(): GizmoManager {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    // Create and setup GizmoManager
+    const gizmoManager = new GizmoManager(this.scene);
+    gizmoManager.clearGizmoOnEmptyPointerEvent = true;
+
+    // TODO: use inspector to toggle gizmos
+    gizmoManager.positionGizmoEnabled = true;
+    gizmoManager.rotationGizmoEnabled = false;
+    gizmoManager.scaleGizmoEnabled = false;
+
+    return gizmoManager;
+  }
+
   async createEnvironment(): Promise<void> {
     if (!this.scene) {
       throw new Error("No scene");
+    }
+
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
     }
 
     this.scene.shadowsEnabled = true;
@@ -441,6 +467,7 @@ export default class App {
         mesh.dispose();
         return;
       }
+      mesh.isPickable = true;
       mesh.checkCollisions = true;
       mesh.receiveShadows = true;
 
@@ -456,6 +483,13 @@ export default class App {
 
       sunShadowGenerator.addShadowCaster(mesh);
     });
+    // Set these meshes as attachable for gizmo manager
+    if (!this.gizmoManager.attachableMeshes) {
+      this.gizmoManager.attachableMeshes = meshes.slice(1);
+      console.log(this.gizmoManager.attachableMeshes);
+    } else {
+      this.gizmoManager.attachableMeshes.push(...meshes.slice(1));
+    }
 
     // Porsche
     const { meshes: porsche } = await SceneLoader.ImportMeshAsync(
@@ -471,6 +505,7 @@ export default class App {
     );
 
     porsche.forEach((mesh) => {
+      mesh.isPickable = true;
       mesh.receiveShadows = true;
       sunShadowGenerator.addShadowCaster(mesh);
 
@@ -513,8 +548,11 @@ export default class App {
     // Set the parent of the porsche to the bounding box mesh
     porsche[0].parent = porscheBoundingBoxMesh;
 
-    porscheBoundingBoxMesh.isVisible = false;
+    // Only the bounding box mesh is attachable for the gizmo manager
+    this.gizmoManager.attachableMeshes.push(porscheBoundingBoxMesh);
     porscheBoundingBoxMesh.isPickable = true;
+
+    porscheBoundingBoxMesh.isVisible = false;
     // porscheBoundingBoxMesh.checkCollisions = true;
     porscheBoundingBoxMesh.position.y += 0.09;
 
