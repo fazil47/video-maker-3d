@@ -96,18 +96,21 @@ export default function BabylonEditor() {
           display: loaded ? "flex" : "none",
         }}
       >
-        {/* <div ref={hierarchy} className="p-2 flex flex-col items-center rounded-md bg-gray-200 dark:bg-gray-800">
+        {/* <div ref={hierarchy} className="p-2 flex flex-col items-center rounded-md bg-gray-200 dark:bg-black">
           <p className="text-3xl font-bold">Scene Hierarchy</p>
         </div> */}
         <canvas
           ref={renderCanvas}
           className="h-full rounded-md focus:outline-none flex-grow"
         />
+        {/* TODO: Move this to a separate component */}
         <div
           ref={inspector}
-          className="p-2 flex flex-col items-center rounded-md bg-gray-200 dark:bg-gray-800"
+          className="p-2 h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-black"
         >
-          <p className="text-3xl font-bold">Inspector</p>
+          <div className="p-2 w-full text-center text-2xl font-bold border-b-2 border-[#242424] dark:border-gray-700">
+            Inspector
+          </div>
         </div>
       </div>
     </>
