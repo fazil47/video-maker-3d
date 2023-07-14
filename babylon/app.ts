@@ -48,6 +48,10 @@ export default class App {
     });
   }
 
+  /**
+   * Initializes the babylon engine and scene asynchronously.
+   * @param canvas The canvas to render to.
+   */
   async initialize(canvas: HTMLCanvasElement): Promise<void> {
     // create the canvas html element and attach it to the webpage
     this.canvas = canvas;
@@ -89,6 +93,10 @@ export default class App {
     this.setSnapshotMode("standard");
   }
 
+  /**
+   * Sets the performance priority for the scene.
+   * @param priority The performance priority to set.
+   */
   setPerformancePriority(
     priority: "aggressive" | "intermediate" | "compatible"
   ) {
@@ -110,6 +118,10 @@ export default class App {
     }
   }
 
+  /**
+   * Sets the snapshot mode for WebGPU snapshot rendering.
+   * @param mode The snapshot mode to set.
+   */
   setSnapshotMode(mode: "disabled" | "standard" | "fast") {
     if (!this.scene) {
       throw new Error("No scene");
@@ -135,6 +147,9 @@ export default class App {
     });
   }
 
+  /**
+   * Resets the snapshot for WebGPU snapshot rendering.
+   */
   resetSnapshot() {
     if (!this.scene) {
       throw new Error("No scene");
@@ -147,6 +162,10 @@ export default class App {
     });
   }
 
+  /**
+   * Creates a FreeCamera and sets up controls and the collider.
+   * @returns The created FreeCamera.
+   */
   createController(): FreeCamera {
     if (!this.scene) {
       throw new Error("No scene");
@@ -239,6 +258,12 @@ export default class App {
     }
   }
 
+  /**
+   * Rotates the sun and updates the sky material and ambient light based on the new sun position.
+   * @param skySun The directional light representing the sun.
+   * @param skyMaterial The sky material.
+   * @param angle The angle to rotate the sun by.
+   */
   rotateSun(skySun: DirectionalLight, skyMaterial: SkyMaterial, angle: number) {
     // skySun.direction.y goes from 0 at sunrise and sunset to -1 at noon
 
@@ -254,6 +279,9 @@ export default class App {
     this.scene!.ambientColor = sunColor;
   }
 
+  /**
+   * Creates the gizmo manager.
+   */
   createGizmoManager(): GizmoManager {
     if (!this.scene) {
       throw new Error("No scene");
@@ -271,6 +299,9 @@ export default class App {
     return gizmoManager;
   }
 
+  /**
+   * Creates the environment. Setups up skybox, lighting, and post-processes.
+   */
   async createEnvironment(): Promise<void> {
     if (!this.scene) {
       throw new Error("No scene");
@@ -585,6 +616,9 @@ export default class App {
     // this.resetSnapshot();
   }
 
+  /**
+   * Creates the inspector in development builds
+   */
   createInspector(): void {
     if (!this.scene) {
       throw new Error("No scene");
