@@ -91,7 +91,7 @@ export default function BabylonEditor() {
         </div>
       )}
       <div
-        className="h-screen w-screen m-0 p-2 flex-row justify-center items-center gap-1"
+        className="h-screen w-screen m-0 p-2 flex-row justify-center items-center gap-2"
         style={{
           display: loaded ? "flex" : "none",
         }}
@@ -106,7 +106,7 @@ export default function BabylonEditor() {
         {/* TODO: Move this to a separate component */}
         <div
           ref={inspector}
-          className="p-2 h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-black"
+          className="p-2 h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#282828]"
         >
           <div className="p-2 w-full text-center text-2xl font-bold border-b-2 border-[#242424] dark:border-gray-700">
             Inspector

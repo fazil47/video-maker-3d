@@ -292,6 +292,7 @@ export default class App {
         [this.camera]
       );
       defaultPipeline.fxaaEnabled = true;
+      defaultPipeline.glowLayerEnabled = true;
 
       // Screen Space Ambient Occlusion for WebGL 2
       if (SSAO2RenderingPipeline.IsSupported) {
@@ -302,13 +303,17 @@ export default class App {
           [this.camera] // The list of cameras to be attached to
         );
 
-        ssao.totalStrength = 1;
-        ssao.radius = 1.5;
+        ssao.totalStrength = 2;
+        ssao.base = 0;
+        ssao.radius = 1.0;
         ssao.epsilon = 0.02;
-        ssao.expensiveBlur = false;
         ssao.samples = 16;
         ssao.maxZ = 250;
-        ssao.minZAspect = 0.01;
+        ssao.minZAspect = 0.5;
+        ssao.expensiveBlur = true;
+        ssao.bilateralSamples = 16;
+        ssao.bilateralSoften = 1;
+        ssao.bilateralTolerance = 1;
       }
 
       // Screen Space Reflections
@@ -460,7 +465,7 @@ export default class App {
       { diameter: 500 },
       this.scene
     );
-    groundbox.layerMask = 0x10000000;
+    groundbox.layerMask = 0x10000000; // FIXME: Had to do this make the sky visible
     groundbox.position.y = 0;
     groundbox.infiniteDistance = true;
     groundbox.material = groundboxMaterial;
@@ -557,20 +562,17 @@ export default class App {
       );
     });
 
-    // Make a transparent bounding box parent mesh for the porsche
+    // Make a transparent bounding box parent mesh for the vehicle
     const bmwBoundingBoxMesh = MeshBuilder.CreateBox(
-      "porscheBoundingBox",
+      "bmwBoundingBox",
       {
-        width:
-          bmwBoundingBox.maximumWorld.x - bmwBoundingBox.minimumWorld.x,
-        height:
-          bmwBoundingBox.maximumWorld.y - bmwBoundingBox.minimumWorld.y,
-        depth:
-          bmwBoundingBox.maximumWorld.z - bmwBoundingBox.minimumWorld.z,
+        width: bmwBoundingBox.maximumWorld.x - bmwBoundingBox.minimumWorld.x,
+        height: bmwBoundingBox.maximumWorld.y - bmwBoundingBox.minimumWorld.y,
+        depth: bmwBoundingBox.maximumWorld.z - bmwBoundingBox.minimumWorld.z,
       },
       this.scene
     );
-    // Set the parent of the porsche to the bounding box mesh
+    // Set the parent of the vehicle to the bounding box mesh
     bmw[0].parent = bmwBoundingBoxMesh;
 
     // Only the bounding box mesh is attachable for the gizmo manager
@@ -578,7 +580,6 @@ export default class App {
     bmwBoundingBoxMesh.isPickable = true;
 
     bmwBoundingBoxMesh.isVisible = false;
-    // porscheBoundingBoxMesh.checkCollisions = true;
     bmwBoundingBoxMesh.position.y += 0.09;
 
     // this.resetSnapshot();
