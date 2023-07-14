@@ -22,11 +22,9 @@ import {
   SSAO2RenderingPipeline,
   SSRRenderingPipeline,
   DefaultRenderingPipeline,
-  UtilityLayerRenderer,
   GizmoManager,
-  Mesh,
 } from "@babylonjs/core";
-import { SkyMaterial } from "@babylonjs/materials";
+import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 
@@ -61,7 +59,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.setPerformancePriority("intermediate");
+    this.setPerformancePriority("compatible");
 
     this.camera = this.createController();
     this.gizmoManager = this.createGizmoManager();
@@ -294,8 +292,8 @@ export default class App {
         [this.camera]
       );
       defaultPipeline.fxaaEnabled = true;
-      defaultPipeline.sharpenEnabled = true;
 
+      // Screen Space Ambient Occlusion for WebGL 2
       if (SSAO2RenderingPipeline.IsSupported) {
         const ssao = new SSAO2RenderingPipeline(
           "ssao", // The name of the pipeline
@@ -304,36 +302,41 @@ export default class App {
           [this.camera] // The list of cameras to be attached to
         );
 
-        ssao.radius = 1;
-        ssao.totalStrength = 1.3;
-        ssao.expensiveBlur = true;
+        ssao.totalStrength = 1;
+        ssao.radius = 1.5;
+        ssao.epsilon = 0.02;
+        ssao.expensiveBlur = false;
         ssao.samples = 16;
         ssao.maxZ = 250;
+        ssao.minZAspect = 0.01;
       }
 
-      const ssr = new SSRRenderingPipeline(
-        "ssr", // The name of the pipeline
-        this.scene, // The scene to which the pipeline belongs
-        [this.camera], // The list of cameras to attach the pipeline to
-        false, // Whether or not to use the geometry buffer renderer (default: false, use the pre-pass renderer)
-        Constants.TEXTURETYPE_UNSIGNED_BYTE // The texture type used by the SSR effect (default: TEXTURETYPE_UNSIGNED_BYTE)
-      );
+      // Screen Space Reflections
+      {
+        const ssr = new SSRRenderingPipeline(
+          "ssr", // The name of the pipeline
+          this.scene, // The scene to which the pipeline belongs
+          [this.camera], // The list of cameras to attach the pipeline to
+          false, // Whether or not to use the geometry buffer renderer (default: false, use the pre-pass renderer)
+          Constants.TEXTURETYPE_UNSIGNED_BYTE // The texture type used by the SSR effect (default: TEXTURETYPE_UNSIGNED_BYTE)
+        );
 
-      ssr.thickness = 0.1;
-      ssr.selfCollisionNumSkip = 2;
-      ssr.enableAutomaticThicknessComputation = false;
-      ssr.blurDispersionStrength = 0.02;
-      ssr.roughnessFactor = 0.05;
-      ssr.enableSmoothReflections = true;
-      ssr.step = 20;
-      ssr.maxSteps = 100;
-      ssr.maxDistance = 1000;
-      ssr.blurDownsample = 1;
-      ssr.ssrDownsample = 1;
+        ssr.thickness = 0.1;
+        ssr.selfCollisionNumSkip = 2;
+        ssr.enableAutomaticThicknessComputation = false;
+        ssr.blurDispersionStrength = 0.02;
+        ssr.roughnessFactor = 0.05;
+        ssr.enableSmoothReflections = true;
+        ssr.step = 20;
+        ssr.maxSteps = 100;
+        ssr.maxDistance = 1000;
+        ssr.blurDownsample = 1;
+        ssr.ssrDownsample = 1;
 
-      // Set ssr to false by default because of it's performance impact
-      // TODO: Doesn't work when toggled with intermediate optimization
-      ssr.isEnabled = false;
+        // Set ssr to false by default because of it's performance impact
+        // TODO: Doesn't work when toggled with intermediate optimization
+        ssr.isEnabled = false;
+      }
     }
 
     // Setup directional light based on sun position in skyMaterial
@@ -358,12 +361,12 @@ export default class App {
     sunShadowGenerator.transparencyShadow = true;
 
     // Create skybox material
-    const skyMaterial = new SkyMaterial("skyMaterial", this.scene);
-    skyMaterial.backFaceCulling = false;
+    const skyboxMaterial = new SkyMaterial("skyboxMaterial", this.scene);
+    skyboxMaterial.backFaceCulling = false;
 
     // Set sky material sun position based on skySun direction
-    skyMaterial.useSunPosition = true;
-    skyMaterial.sunPosition = skySun.direction.scale(-1);
+    skyboxMaterial.useSunPosition = true;
+    skyboxMaterial.sunPosition = skySun.direction.scale(-1);
 
     // TODO: Replace with night sky when sun is below horizon
     // Visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
@@ -378,7 +381,7 @@ export default class App {
       if (!isEnabled) {
         return;
       }
-      this.rotateSun(skySun, skyMaterial, quaternionDelta);
+      this.rotateSun(skySun, skyboxMaterial, quaternionDelta);
 
       // If sun is below horizon, rotate in opposite direction
       if (skySun.direction.y > 0) {
@@ -386,43 +389,44 @@ export default class App {
       }
     });
 
-    skyMaterial.luminance = 0.4;
-    skyMaterial.turbidity = 10;
-    skyMaterial.rayleigh = 4;
-    skyMaterial.mieCoefficient = 0.005;
-    skyMaterial.mieDirectionalG = 0.98;
-    // skyMaterial.cameraOffset.y = 50;
+    skyboxMaterial.luminance = 0.4;
+    skyboxMaterial.turbidity = 10;
+    skyboxMaterial.rayleigh = 4;
+    skyboxMaterial.mieCoefficient = 0.005;
+    skyboxMaterial.mieDirectionalG = 0.98;
+    skyboxMaterial.cameraOffset.y = 200;
+    skyboxMaterial.disableDepthWrite = false;
 
     // Setup event listener to modify skyMaterial
     addEventListener("keydown", (event: KeyboardEvent) => {
       if (event.key === "1") {
-        skyMaterial.cameraOffset.y += 10;
+        skyboxMaterial.cameraOffset.y += 10;
       } else if (event.key === "2") {
-        skyMaterial.cameraOffset.y -= 10;
+        skyboxMaterial.cameraOffset.y -= 10;
       } else if (event.key === "3") {
-        skyMaterial.distance -= 100;
+        skyboxMaterial.distance -= 100;
       } else if (event.key === "4") {
-        skyMaterial.distance += 100;
+        skyboxMaterial.distance += 100;
       } else if (event.key === "5") {
-        skyMaterial.luminance += 0.1;
+        skyboxMaterial.luminance += 0.1;
       } else if (event.key === "6") {
-        skyMaterial.luminance -= 0.1;
+        skyboxMaterial.luminance -= 0.1;
       } else if (event.key === "7") {
-        skyMaterial.turbidity += 0.1;
+        skyboxMaterial.turbidity += 0.1;
       } else if (event.key === "8") {
-        skyMaterial.turbidity -= 0.1;
+        skyboxMaterial.turbidity -= 0.1;
       } else if (event.key === "9") {
-        skyMaterial.rayleigh += 0.1;
+        skyboxMaterial.rayleigh += 0.1;
       } else if (event.key === "0") {
-        skyMaterial.rayleigh -= 0.1;
+        skyboxMaterial.rayleigh -= 0.1;
       } else if (event.key === "u") {
-        skyMaterial.mieCoefficient += 0.001;
+        skyboxMaterial.mieCoefficient += 0.001;
       } else if (event.key === "i") {
-        skyMaterial.mieCoefficient -= 0.001;
+        skyboxMaterial.mieCoefficient -= 0.001;
       } else if (event.key === "o") {
-        skyMaterial.mieDirectionalG += 0.01;
+        skyboxMaterial.mieDirectionalG += 0.01;
       } else if (event.key === "p") {
-        skyMaterial.mieDirectionalG -= 0.01;
+        skyboxMaterial.mieDirectionalG -= 0.01;
       }
     });
 
@@ -432,14 +436,40 @@ export default class App {
       { size: 1000.0 },
       this.scene
     );
-    skybox.material = skyMaterial;
+    skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
+    skybox.isPickable = false;
+
+    // Create a "groundbox", a skybox with an invisible top part, used to render the ground
+    const groundboxMaterial = new GradientMaterial(
+      "groundboxMaterial",
+      this.scene
+    );
+    groundboxMaterial.topColor = new Color3(1, 1, 1);
+    groundboxMaterial.topColorAlpha = 0;
+    groundboxMaterial.bottomColor = new Color3(0.67, 0.56, 0.45);
+    groundboxMaterial.offset = 0.5;
+    groundboxMaterial.smoothness = 1;
+    groundboxMaterial.scale = 0.1;
+    groundboxMaterial.backFaceCulling = false;
+    groundboxMaterial.disableDepthWrite = true;
+    groundboxMaterial.freeze();
+
+    const groundbox = MeshBuilder.CreateSphere(
+      "groundbox",
+      { diameter: 500 },
+      this.scene
+    );
+    groundbox.layerMask = 0x10000000;
+    groundbox.position.y = 0;
+    groundbox.infiniteDistance = true;
+    groundbox.material = groundboxMaterial;
+    groundbox.isPickable = false;
 
     // Create texture from skyMaterial using reflection probe
-    // TODO: Should I disable mipmaps?
-    // TODO: Maybe increase resolution?
-    const reflectionProbe = new ReflectionProbe("ref", 8, this.scene, false);
+    const reflectionProbe = new ReflectionProbe("ref", 64, this.scene, false);
     reflectionProbe.renderList?.push(skybox);
+    reflectionProbe.renderList?.push(groundbox);
     // TODO: Set to refresh once and then update only when sun position changes
     reflectionProbe.refreshRate =
       RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES;
