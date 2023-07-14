@@ -59,7 +59,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.setPerformancePriority("compatible");
+    this.setPerformancePriority("intermediate");
 
     this.camera = this.createController();
     this.gizmoManager = this.createGizmoManager();
@@ -492,11 +492,6 @@ export default class App {
       this.scene
     );
     meshes.forEach((mesh) => {
-      if (mesh.name === "Ramp" || mesh.name === "Ramp1") {
-        // Remove the ramps
-        mesh.dispose();
-        return;
-      }
       mesh.isPickable = true;
       mesh.checkCollisions = true;
       mesh.receiveShadows = true;
@@ -521,20 +516,20 @@ export default class App {
       this.gizmoManager.attachableMeshes.push(...meshes.slice(1));
     }
 
-    // Porsche
-    const { meshes: porsche } = await SceneLoader.ImportMeshAsync(
+    // BMW M4
+    const { meshes: bmw } = await SceneLoader.ImportMeshAsync(
       "",
       "./models/",
-      "porsche.glb",
+      "bmw_m4_2021.glb",
       this.scene
     );
 
-    const porscheBoundingBox = new BoundingBox(
+    const bmwBoundingBox = new BoundingBox(
       new Vector3(0, 0, 0),
       new Vector3(0, 0, 0)
     );
 
-    porsche.forEach((mesh) => {
+    bmw.forEach((mesh) => {
       mesh.isPickable = true;
       mesh.receiveShadows = true;
       sunShadowGenerator.addShadowCaster(mesh);
@@ -550,41 +545,41 @@ export default class App {
       }
 
       // Expand the bounding box
-      porscheBoundingBox.reConstruct(
+      bmwBoundingBox.reConstruct(
         Vector3.Minimize(
-          porscheBoundingBox.minimumWorld,
+          bmwBoundingBox.minimumWorld,
           mesh.getBoundingInfo().boundingBox.minimumWorld
         ),
         Vector3.Maximize(
-          porscheBoundingBox.maximumWorld,
+          bmwBoundingBox.maximumWorld,
           mesh.getBoundingInfo().boundingBox.maximumWorld
         )
       );
     });
 
     // Make a transparent bounding box parent mesh for the porsche
-    const porscheBoundingBoxMesh = MeshBuilder.CreateBox(
+    const bmwBoundingBoxMesh = MeshBuilder.CreateBox(
       "porscheBoundingBox",
       {
         width:
-          porscheBoundingBox.maximumWorld.x - porscheBoundingBox.minimumWorld.x,
+          bmwBoundingBox.maximumWorld.x - bmwBoundingBox.minimumWorld.x,
         height:
-          porscheBoundingBox.maximumWorld.y - porscheBoundingBox.minimumWorld.y,
+          bmwBoundingBox.maximumWorld.y - bmwBoundingBox.minimumWorld.y,
         depth:
-          porscheBoundingBox.maximumWorld.z - porscheBoundingBox.minimumWorld.z,
+          bmwBoundingBox.maximumWorld.z - bmwBoundingBox.minimumWorld.z,
       },
       this.scene
     );
     // Set the parent of the porsche to the bounding box mesh
-    porsche[0].parent = porscheBoundingBoxMesh;
+    bmw[0].parent = bmwBoundingBoxMesh;
 
     // Only the bounding box mesh is attachable for the gizmo manager
-    this.gizmoManager.attachableMeshes.push(porscheBoundingBoxMesh);
-    porscheBoundingBoxMesh.isPickable = true;
+    this.gizmoManager.attachableMeshes.push(bmwBoundingBoxMesh);
+    bmwBoundingBoxMesh.isPickable = true;
 
-    porscheBoundingBoxMesh.isVisible = false;
+    bmwBoundingBoxMesh.isVisible = false;
     // porscheBoundingBoxMesh.checkCollisions = true;
-    porscheBoundingBoxMesh.position.y += 0.09;
+    bmwBoundingBoxMesh.position.y += 0.09;
 
     // this.resetSnapshot();
   }
