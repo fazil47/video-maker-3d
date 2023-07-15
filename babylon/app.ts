@@ -63,7 +63,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.setPerformancePriority("intermediate");
+    this.setPerformancePriority("compatible");
 
     this.camera = this.createController();
     this.gizmoManager = this.createGizmoManager();
@@ -313,6 +313,11 @@ export default class App {
 
     this.scene.shadowsEnabled = true;
     this.scene.collisionsEnabled = false;
+    this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
+    this.scene.imageProcessingConfiguration.toneMappingType =
+      ImageProcessingConfiguration.TONEMAPPING_ACES;
+    this.scene.clearColor = new Color4(1, 1, 1, 1);
+    this.scene.ambientColor = new Color3(0.8, 0.8, 0.8);
 
     // Apply post-processes effects
     if (this.camera) {
@@ -385,9 +390,6 @@ export default class App {
     skySun.intensity = 2;
     skySun.shadowEnabled = true;
     skySun.autoCalcShadowZBounds = true;
-
-    // TODO: skySun color should be based on inclination
-    const skyAmbientColor = new Color3(0.8, 0.8, 0.8); // Set scene ambient color to a bright color
 
     // Setup directional light shadow generator
     const sunShadowGenerator = new ShadowGenerator(1024, skySun);
@@ -475,20 +477,14 @@ export default class App {
     this.scene.environmentTexture = reflectionProbe.cubeTexture;
     this.scene.environmentIntensity = 2;
 
-    this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
-    this.scene.imageProcessingConfiguration.toneMappingType =
-      ImageProcessingConfiguration.TONEMAPPING_ACES;
-    this.scene.clearColor = new Color4(1, 1, 1, 1);
-    this.scene.ambientColor = skyAmbientColor;
-
     // Environment meshes
-    const { meshes } = await SceneLoader.ImportMeshAsync(
+    const { meshes: kenneyPlayground } = await SceneLoader.ImportMeshAsync(
       "",
       "./models/",
       "KenneyPlayground.glb",
       this.scene
     );
-    meshes.forEach((mesh) => {
+    kenneyPlayground.forEach((mesh) => {
       mesh.isPickable = true;
       mesh.checkCollisions = true;
       mesh.receiveShadows = true;
@@ -507,10 +503,10 @@ export default class App {
     });
     // Set these meshes as attachable for gizmo manager
     if (!this.gizmoManager.attachableMeshes) {
-      this.gizmoManager.attachableMeshes = meshes.slice(1);
+      this.gizmoManager.attachableMeshes = kenneyPlayground.slice(1);
       console.log(this.gizmoManager.attachableMeshes);
     } else {
-      this.gizmoManager.attachableMeshes.push(...meshes.slice(1));
+      this.gizmoManager.attachableMeshes.push(...kenneyPlayground.slice(1));
     }
 
     // BMW M4
@@ -553,6 +549,11 @@ export default class App {
         )
       );
     });
+    bmw[0].position.y += 0.09;
+    bmw[0].rotationQuaternion = Quaternion.RotationAxis(
+      Vector3.Up(),
+      Math.PI / 6
+    );
 
     // Make a transparent bounding box parent mesh for the vehicle
     const bmwBoundingBoxMesh = MeshBuilder.CreateBox(
@@ -570,9 +571,7 @@ export default class App {
     // Only the bounding box mesh is attachable for the gizmo manager
     this.gizmoManager.attachableMeshes.push(bmwBoundingBoxMesh);
     bmwBoundingBoxMesh.isPickable = true;
-
     bmwBoundingBoxMesh.isVisible = false;
-    bmwBoundingBoxMesh.position.y += 0.09;
 
     // this.resetSnapshot();
   }
