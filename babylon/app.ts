@@ -63,7 +63,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.setPerformancePriority("compatible");
+    this.setPerformancePriority("intermediate");
 
     this.camera = this.createController();
     this.gizmoManager = this.createGizmoManager();
