@@ -406,22 +406,16 @@ export default class App {
 
     // TODO: Replace with night sky when sun is below horizon
     // Visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
-    let quaternionDelta = 0.002;
-    let isEnabled = true;
-    addEventListener("keydown", (event: KeyboardEvent) => {
-      if (event.key === " ") {
-        isEnabled = !isEnabled;
-      }
-    });
-    this.scene.registerBeforeRender(() => {
-      if (!isEnabled) {
-        return;
-      }
-      this.rotateSun(skySun, skyboxMaterial, quaternionDelta);
-
-      // If sun is below horizon, rotate in opposite direction
-      if (skySun.direction.y > 0) {
-        quaternionDelta *= -1;
+    let quaternionDelta = 0.02;
+    window.addEventListener("keydown", (event) => {
+      if (skySun.direction.y <= 0) {
+        if (event.key === "1") {
+          this.rotateSun(skySun, skyboxMaterial, quaternionDelta);
+        } else if (event.key === "2") {
+          this.rotateSun(skySun, skyboxMaterial, -quaternionDelta);
+        }
+      } else {
+        skySun.direction.y = 0;
       }
     });
 
@@ -432,39 +426,6 @@ export default class App {
     skyboxMaterial.mieDirectionalG = 0.98;
     skyboxMaterial.cameraOffset.y = 200;
     skyboxMaterial.disableDepthWrite = false;
-
-    // Setup event listener to modify skyMaterial
-    addEventListener("keydown", (event: KeyboardEvent) => {
-      if (event.key === "1") {
-        skyboxMaterial.cameraOffset.y += 10;
-      } else if (event.key === "2") {
-        skyboxMaterial.cameraOffset.y -= 10;
-      } else if (event.key === "3") {
-        skyboxMaterial.distance -= 100;
-      } else if (event.key === "4") {
-        skyboxMaterial.distance += 100;
-      } else if (event.key === "5") {
-        skyboxMaterial.luminance += 0.1;
-      } else if (event.key === "6") {
-        skyboxMaterial.luminance -= 0.1;
-      } else if (event.key === "7") {
-        skyboxMaterial.turbidity += 0.1;
-      } else if (event.key === "8") {
-        skyboxMaterial.turbidity -= 0.1;
-      } else if (event.key === "9") {
-        skyboxMaterial.rayleigh += 0.1;
-      } else if (event.key === "0") {
-        skyboxMaterial.rayleigh -= 0.1;
-      } else if (event.key === "u") {
-        skyboxMaterial.mieCoefficient += 0.001;
-      } else if (event.key === "i") {
-        skyboxMaterial.mieCoefficient -= 0.001;
-      } else if (event.key === "o") {
-        skyboxMaterial.mieDirectionalG += 0.01;
-      } else if (event.key === "p") {
-        skyboxMaterial.mieDirectionalG -= 0.01;
-      }
-    });
 
     // Create skybox mesh
     const skybox = MeshBuilder.CreateBox(
