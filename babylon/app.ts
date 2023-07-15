@@ -334,7 +334,7 @@ export default class App {
           [this.camera] // The list of cameras to be attached to
         );
 
-        ssao.totalStrength = 2;
+        ssao.totalStrength = 1.2;
         ssao.base = 0;
         ssao.radius = 1.0;
         ssao.epsilon = 0.02;
