@@ -198,7 +198,7 @@ export default class App {
     this.scene.imageProcessingConfiguration.toneMappingType =
       ImageProcessingConfiguration.TONEMAPPING_ACES;
     this.scene.clearColor = new Color4(1, 1, 1, 1);
-    this.scene.ambientColor = new Color3(0.8, 0.8, 0.8);
+    this.scene.ambientColor = new Color3(0.6, 0.6, 0.6);
 
     // POST-PROCESSING
     this._setupPostProcessEffects(this.camera);
