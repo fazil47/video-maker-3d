@@ -68,7 +68,7 @@ export default class App {
 
     this.camera = this._createController();
     this.gizmoManager = this._createGizmoManager();
-    await this._createEnvironment();
+    this._createEnvironment();
 
     // Create inspector if in development mode
     if (process.env.NODE_ENV === "development") {
@@ -182,19 +182,15 @@ export default class App {
   }
 
   /**
-   * Creates the environment. Setups up skybox, lighting, and post-processes.
+   * Creates the environment. Setups up skybox, lighting, post-processes, and some meshes.
    */
-  private async _createEnvironment(): Promise<void> {
+  private _createEnvironment() {
     if (!this.scene) {
       throw new Error("No scene");
     }
 
     if (!this.camera) {
       throw new Error("No camera");
-    }
-
-    if (!this.gizmoManager) {
-      throw new Error("No gizmo manager");
     }
 
     this.scene.shadowsEnabled = true;
@@ -205,11 +201,9 @@ export default class App {
     this.scene.ambientColor = new Color3(0.8, 0.8, 0.8);
 
     // POST-PROCESSING
-
     this._setupPostProcessEffects(this.camera);
 
     // LIGHTING
-
     const skySun = new DirectionalLight(
       "skySun",
       new Vector3(0, 0, 0),
@@ -226,106 +220,113 @@ export default class App {
     sunShadowGenerator.transparencyShadow = true;
 
     // SKYBOX
-
     this._setupSkybox(this.scene, skySun);
 
     // KENNEY PLAYGROUND
-
-    const { meshes: kenneyPlayground } = await SceneLoader.ImportMeshAsync(
+    SceneLoader.ImportMeshAsync(
       "",
       "./models/",
       "KenneyPlayground.glb",
       this.scene
-    );
-    kenneyPlayground.forEach((mesh) => {
-      mesh.isPickable = true;
-      mesh.checkCollisions = true;
-      mesh.receiveShadows = true;
-
-      // Set base ambient color to white
-      if (mesh.material) {
-        if (
-          mesh.material instanceof PBRMaterial ||
-          mesh.material instanceof StandardMaterial
-        ) {
-          mesh.material.ambientColor = new Color3(1, 1, 1);
-        }
+    ).then(({ meshes: kenneyPlayground }) => {
+      if (!this.gizmoManager) {
+        throw new Error("No gizmo manager");
       }
 
-      sunShadowGenerator.addShadowCaster(mesh);
+      kenneyPlayground.forEach((mesh) => {
+        mesh.isPickable = true;
+        mesh.checkCollisions = true;
+        mesh.receiveShadows = true;
+
+        // Set base ambient color to white
+        if (mesh.material) {
+          if (
+            mesh.material instanceof PBRMaterial ||
+            mesh.material instanceof StandardMaterial
+          ) {
+            mesh.material.ambientColor = new Color3(1, 1, 1);
+          }
+        }
+
+        sunShadowGenerator.addShadowCaster(mesh);
+      });
+
+      // Set these meshes as attachable for gizmo manager
+      if (!this.gizmoManager.attachableMeshes) {
+        this.gizmoManager.attachableMeshes = kenneyPlayground.slice(1);
+        console.log(this.gizmoManager.attachableMeshes);
+      } else {
+        this.gizmoManager.attachableMeshes.push(...kenneyPlayground.slice(1));
+      }
     });
-    // Set these meshes as attachable for gizmo manager
-    if (!this.gizmoManager.attachableMeshes) {
-      this.gizmoManager.attachableMeshes = kenneyPlayground.slice(1);
-      console.log(this.gizmoManager.attachableMeshes);
-    } else {
-      this.gizmoManager.attachableMeshes.push(...kenneyPlayground.slice(1));
-    }
 
     // BMW M4
-
-    const { meshes: bmw } = await SceneLoader.ImportMeshAsync(
+    SceneLoader.ImportMeshAsync(
       "",
       "./models/",
       "bmw_m4_2021.glb",
       this.scene
-    );
-
-    const bmwBoundingBox = new BoundingBox(
-      new Vector3(0, 0, 0),
-      new Vector3(0, 0, 0)
-    );
-
-    bmw.forEach((mesh) => {
-      mesh.isPickable = true;
-      mesh.receiveShadows = true;
-      sunShadowGenerator.addShadowCaster(mesh);
-
-      // Set base ambient color to white
-      if (mesh.material) {
-        if (
-          mesh.material instanceof PBRMaterial ||
-          mesh.material instanceof StandardMaterial
-        ) {
-          mesh.material.ambientColor = new Color3(1, 1, 1);
-        }
+    ).then(({ meshes: bmw }) => {
+      if (!this.gizmoManager) {
+        throw new Error("No gizmo manager");
       }
 
-      // Expand the bounding box
-      bmwBoundingBox.reConstruct(
-        Vector3.Minimize(
-          bmwBoundingBox.minimumWorld,
-          mesh.getBoundingInfo().boundingBox.minimumWorld
-        ),
-        Vector3.Maximize(
-          bmwBoundingBox.maximumWorld,
-          mesh.getBoundingInfo().boundingBox.maximumWorld
-        )
+      const bmwBoundingBox = new BoundingBox(
+        new Vector3(0, 0, 0),
+        new Vector3(0, 0, 0)
       );
+
+      bmw.forEach((mesh) => {
+        mesh.isPickable = true;
+        mesh.receiveShadows = true;
+        sunShadowGenerator.addShadowCaster(mesh);
+
+        // Set base ambient color to white
+        if (mesh.material) {
+          if (
+            mesh.material instanceof PBRMaterial ||
+            mesh.material instanceof StandardMaterial
+          ) {
+            mesh.material.ambientColor = new Color3(1, 1, 1);
+          }
+        }
+
+        // Expand the bounding box
+        bmwBoundingBox.reConstruct(
+          Vector3.Minimize(
+            bmwBoundingBox.minimumWorld,
+            mesh.getBoundingInfo().boundingBox.minimumWorld
+          ),
+          Vector3.Maximize(
+            bmwBoundingBox.maximumWorld,
+            mesh.getBoundingInfo().boundingBox.maximumWorld
+          )
+        );
+      });
+      bmw[0].position.y += 0.09;
+      bmw[0].rotationQuaternion = Quaternion.RotationAxis(
+        Vector3.Up(),
+        Math.PI / 6
+      );
+
+      // Make a transparent bounding box parent mesh for the vehicle
+      const bmwBoundingBoxMesh = MeshBuilder.CreateBox(
+        "bmwBoundingBox",
+        {
+          width: bmwBoundingBox.maximumWorld.x - bmwBoundingBox.minimumWorld.x,
+          height: bmwBoundingBox.maximumWorld.y - bmwBoundingBox.minimumWorld.y,
+          depth: bmwBoundingBox.maximumWorld.z - bmwBoundingBox.minimumWorld.z,
+        },
+        this.scene
+      );
+      // Set the parent of the vehicle to the bounding box mesh
+      bmw[0].parent = bmwBoundingBoxMesh;
+
+      // Only the bounding box mesh is attachable for the gizmo manager
+      this.gizmoManager.attachableMeshes?.push(bmwBoundingBoxMesh);
+      bmwBoundingBoxMesh.isPickable = true;
+      bmwBoundingBoxMesh.isVisible = false;
     });
-    bmw[0].position.y += 0.09;
-    bmw[0].rotationQuaternion = Quaternion.RotationAxis(
-      Vector3.Up(),
-      Math.PI / 6
-    );
-
-    // Make a transparent bounding box parent mesh for the vehicle
-    const bmwBoundingBoxMesh = MeshBuilder.CreateBox(
-      "bmwBoundingBox",
-      {
-        width: bmwBoundingBox.maximumWorld.x - bmwBoundingBox.minimumWorld.x,
-        height: bmwBoundingBox.maximumWorld.y - bmwBoundingBox.minimumWorld.y,
-        depth: bmwBoundingBox.maximumWorld.z - bmwBoundingBox.minimumWorld.z,
-      },
-      this.scene
-    );
-    // Set the parent of the vehicle to the bounding box mesh
-    bmw[0].parent = bmwBoundingBoxMesh;
-
-    // Only the bounding box mesh is attachable for the gizmo manager
-    this.gizmoManager.attachableMeshes.push(bmwBoundingBoxMesh);
-    bmwBoundingBoxMesh.isPickable = true;
-    bmwBoundingBoxMesh.isVisible = false;
 
     this._resetSnapshot();
   }
@@ -375,6 +376,10 @@ export default class App {
     // Visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
     let quaternionDelta = 0.02;
     window.addEventListener("keydown", (event) => {
+      if (!this.scene) {
+        throw new Error("No scene");
+      }
+
       if (skySun.direction.y <= 0) {
         if (event.key === "1") {
           this._rotateSun(skySun, skyboxMaterial, quaternionDelta);
@@ -515,7 +520,15 @@ export default class App {
     skyMaterial: SkyMaterial,
     angle: number
   ) {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
     // skySun.direction.y goes from 0 at sunrise and sunset to -1 at noon
+
+    // Unfreeze materials and enable autoClear to modify sky material and ambient light
+    this.scene.unfreezeMaterials();
+    this.scene.autoClear = true;
 
     // Rotate sun around the y axis and set sun position to the inverse of the direction
     skySun.direction.applyRotationQuaternionInPlace(
@@ -524,9 +537,25 @@ export default class App {
     skyMaterial.sunPosition = skySun.direction.scale(-1);
 
     // Set sun color based on sun position
-    const sunColor = this._getSunColor(Math.abs(skySun.direction.y));
+    const sunColor = this._getSunColor(-skySun.direction.y);
     skySun.diffuse = sunColor;
-    this.scene!.ambientColor = sunColor;
+
+    // TODO: This doesn't work that well, should I just remove it?
+    // // Set ambient light to sunColor when sun is near horizon, otherwise set it to a dim white
+    // if (-skySun.direction.y <= 0.5) {
+    //   this.scene.ambientColor = sunColor;
+    // } else {
+    //   this.scene.ambientColor = new Color3(0.5, 0.5, 0.5);
+    // }
+
+    // Freeze materials and disable autoClear if scene performance priority is not set to compatibility mode
+    if (
+      this.scene.performancePriority !==
+      ScenePerformancePriority.BackwardCompatible
+    ) {
+      this.scene.freezeMaterials();
+      this.scene.autoClear = false;
+    }
   }
 
   /**
