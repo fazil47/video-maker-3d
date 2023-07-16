@@ -590,10 +590,10 @@ export default class App {
 
   /**
    * Sets the performance priority for the scene.
-   * @param priority The performance priority to set. The options are "aggressive", "intermediate", and "compatible".
+   * @param priority The performance priority to set. The options are "compatible", "intermediate", and "aggressive".
    */
   private _setPerformancePriority(
-    priority: "aggressive" | "intermediate" | "compatible"
+    priority: "compatible" | "intermediate" | "aggressive"
   ) {
     if (!this.scene) {
       throw new Error("No scene");
