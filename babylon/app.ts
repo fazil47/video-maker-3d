@@ -245,6 +245,7 @@ export default class App {
             mesh.material instanceof StandardMaterial
           ) {
             mesh.material.ambientColor = new Color3(1, 1, 1);
+            mesh.material.backFaceCulling = true;
           }
         }
 
@@ -288,6 +289,7 @@ export default class App {
             mesh.material instanceof StandardMaterial
           ) {
             mesh.material.ambientColor = new Color3(1, 1, 1);
+            mesh.material.backFaceCulling = true;
           }
         }
 
