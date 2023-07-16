@@ -590,7 +590,7 @@ export default class App {
 
   /**
    * Sets the performance priority for the scene.
-   * @param priority The performance priority to set.
+   * @param priority The performance priority to set. The options are "aggressive", "intermediate", and "compatible".
    */
   private _setPerformancePriority(
     priority: "aggressive" | "intermediate" | "compatible"
@@ -615,7 +615,7 @@ export default class App {
 
   /**
    * Sets the snapshot mode for WebGPU snapshot rendering.
-   * @param mode The snapshot mode to set.
+   * @param mode The snapshot mode to set. The options are "disabled", "standard", and "fast".
    */
   private _setSnapshotMode(mode: "disabled" | "standard" | "fast") {
     if (!this.scene) {
