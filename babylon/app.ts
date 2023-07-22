@@ -402,10 +402,15 @@ export default class App {
     skyboxMaterial.disableDepthWrite = false;
 
     // Create skybox mesh
-    const skybox = MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, scene);
+    const skybox = MeshBuilder.CreateSphere(
+      "skyBox",
+      { diameter: 1000.0 },
+      scene
+    );
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
     skybox.isPickable = false;
+    skybox.alwaysSelectAsActiveMesh = true;
 
     // Create a "groundbox", a skybox with an invisible top part, used to render the ground
     const groundboxMaterial = new GradientMaterial("groundboxMaterial", scene);
@@ -429,6 +434,7 @@ export default class App {
     groundbox.infiniteDistance = true;
     groundbox.material = groundboxMaterial;
     groundbox.isPickable = false;
+    groundbox.alwaysSelectAsActiveMesh = true;
 
     // Create texture from skyMaterial using reflection probe
     const reflectionProbe = new ReflectionProbe("ref", 64, scene, false);
