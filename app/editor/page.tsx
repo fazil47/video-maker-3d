@@ -6,7 +6,7 @@ const BabylonEditor = dynamic(() => import("@/components/BabylonEditor"), {
 
 export default function Editor() {
   return (
-    <main>
+    <main className="h-screen w-screen">
       <BabylonEditor />
     </main>
   );
