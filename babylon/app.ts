@@ -66,8 +66,8 @@ export default class App {
     this.scene = new Scene(this.engine);
     this._setPerformancePriority("intermediate");
 
-    this.camera = this._createController();
     this.gizmoManager = this._createGizmoManager();
+    this.camera = this._createController();
     this._createEnvironment();
 
     // Create inspector if in development mode
@@ -92,6 +92,26 @@ export default class App {
     });
 
     this._setSnapshotMode("standard");
+  }
+
+  /**
+   * Creates the gizmo manager.
+   */
+  private _createGizmoManager(): GizmoManager {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    // Create and setup GizmoManager
+    const gizmoManager = new GizmoManager(this.scene);
+    gizmoManager.clearGizmoOnEmptyPointerEvent = true;
+
+    // TODO: use inspector to toggle gizmos
+    gizmoManager.positionGizmoEnabled = true;
+    gizmoManager.rotationGizmoEnabled = false;
+    gizmoManager.scaleGizmoEnabled = false;
+
+    return gizmoManager;
   }
 
   /**
@@ -143,8 +163,13 @@ export default class App {
         throw new Error("No engine");
       }
 
+      if (!this.gizmoManager) {
+        throw new Error("No gizmo manager");
+      }
+
       if (evt.button === 2) {
         this.engine.enterPointerlock();
+        this.gizmoManager.usePointerToAttachGizmos = false;
       }
     };
 
@@ -153,32 +178,17 @@ export default class App {
         throw new Error("No engine");
       }
 
+      if (!this.gizmoManager) {
+        throw new Error("No gizmo manager");
+      }
+
       if (evt.button === 2) {
+        this.gizmoManager.usePointerToAttachGizmos = true;
         this.engine.exitPointerlock();
       }
     };
 
     return camera;
-  }
-
-  /**
-   * Creates the gizmo manager.
-   */
-  private _createGizmoManager(): GizmoManager {
-    if (!this.scene) {
-      throw new Error("No scene");
-    }
-
-    // Create and setup GizmoManager
-    const gizmoManager = new GizmoManager(this.scene);
-    gizmoManager.clearGizmoOnEmptyPointerEvent = true;
-
-    // TODO: use inspector to toggle gizmos
-    gizmoManager.positionGizmoEnabled = true;
-    gizmoManager.rotationGizmoEnabled = false;
-    gizmoManager.scaleGizmoEnabled = false;
-
-    return gizmoManager;
   }
 
   /**
