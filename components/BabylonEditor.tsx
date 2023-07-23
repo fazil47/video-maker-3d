@@ -75,7 +75,7 @@ export default function BabylonEditor() {
         }}
       >
         {/* MENUBAR */}
-        <menu className="w-full h-[35px] rounded-md rounded-t-none flex flex-row gap-4 p-1 justify-start items-center align-middle bg-gray-100 dark:bg-[#262626]">
+        <menu className="w-full h-[35px] rounded-md rounded-t-none flex flex-row gap-4 p-1 justify-start items-center align-middle bg-gray-100 dark:bg-[#242424]">
           <button className="p-1">File</button>
           <button className="p-1">Edit</button>
           <button className="p-1">View</button>
@@ -93,14 +93,14 @@ export default function BabylonEditor() {
             />
           </div>
           {/* TODO: Move this to a separate component */}
-          <div className="p-1 h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#262626]">
-            <div className="p-1 w-full text-center text-2xl font-bold border-b-1 border-[#242424] dark:border-gray-700">
+          <div className="h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
+            <div className="p-1 w-full text-center text-xl font-bold bg-[#2c2c2c] rounded-md rounded-b-none">
               Inspector
             </div>
           </div>
         </div>
         {/* BOTTOM BAR */}
-        <div className="w-full h-[40px] rounded-md rounded-b-none flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#262626]">
+        <div className="w-full h-[40px] rounded-md rounded-b-none flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#242424]">
           <button className="p-1 h-[25px] flex flex-col justify-center align-middle items-center">
             Board
           </button>
