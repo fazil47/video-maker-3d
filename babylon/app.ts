@@ -265,7 +265,6 @@ export default class App {
       // Set these meshes as attachable for gizmo manager
       if (!this.gizmoManager.attachableMeshes) {
         this.gizmoManager.attachableMeshes = kenneyPlayground.slice(1);
-        console.log(this.gizmoManager.attachableMeshes);
       } else {
         this.gizmoManager.attachableMeshes.push(...kenneyPlayground.slice(1));
       }
