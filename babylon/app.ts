@@ -29,6 +29,10 @@ import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 
+export interface SceneSettings {
+  transformGizmoMode: "position" | "rotation" | "scale";
+}
+
 export default class App {
   engine: WebGPUEngine | Engine | null = null;
   scene: Scene | null = null;
@@ -47,6 +51,29 @@ export default class App {
       }
       onInitialized(this.engine, this.scene);
     });
+  }
+
+  public setSceneSettings(settings: SceneSettings) {
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+    switch (settings.transformGizmoMode) {
+      case "position":
+        this.gizmoManager.positionGizmoEnabled = true;
+        this.gizmoManager.rotationGizmoEnabled = false;
+        this.gizmoManager.scaleGizmoEnabled = false;
+        break;
+      case "rotation":
+        this.gizmoManager.positionGizmoEnabled = false;
+        this.gizmoManager.rotationGizmoEnabled = true;
+        this.gizmoManager.scaleGizmoEnabled = false;
+        break;
+      case "scale":
+        this.gizmoManager.positionGizmoEnabled = false;
+        this.gizmoManager.rotationGizmoEnabled = false;
+        this.gizmoManager.scaleGizmoEnabled = true;
+        break;
+    }
   }
 
   /**

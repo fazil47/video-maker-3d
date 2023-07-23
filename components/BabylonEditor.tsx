@@ -1,47 +1,87 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-import BabylonApp from "@/babylon/app";
 import { Engine, Scene, WebGPUEngine } from "@babylonjs/core";
+import { create } from "zustand";
+
+import BabylonApp, { SceneSettings } from "@/babylon/app";
+
+interface EditorState {
+  panelVisibility: {
+    storyBoard: boolean;
+    inspector: boolean;
+  };
+  sceneSettings: SceneSettings;
+}
+
+const useEditorStore = create<EditorState>((set) => ({
+  panelVisibility: {
+    storyBoard: false,
+    inspector: false,
+  },
+  sceneSettings: {
+    transformGizmoMode: "position",
+  },
+}));
 
 export default function BabylonEditor() {
   const renderCanvas = useRef<HTMLCanvasElement>(null);
 
+  const [app, setApp] = useState<BabylonApp | null>(null);
   const [engine, setEngine] = useState<Engine | WebGPUEngine | null>(null);
   const [scene, setScene] = useState<Scene | null>(null);
   const [loaded, setLoaded] = useState(false);
 
+  const panelVisibility = useEditorStore((state) => state.panelVisibility);
+  const sceneSettings = useEditorStore((state) => state.sceneSettings);
+
+  // Resize render canvas to fit parent container
+  const resizeRenderCanvas = () => {
+    if (renderCanvas.current) {
+      // Set canvas dimensions to the dimensions of the parent container
+      const parentContainer = renderCanvas.current.parentElement;
+      // Set renderCanvas position to fixed so it doesn't affect the parent container's dimensions
+      renderCanvas.current.style.position = "fixed";
+      if (parentContainer) {
+        renderCanvas.current.height = parentContainer.clientHeight;
+        renderCanvas.current.width = parentContainer.clientWidth;
+      }
+      // Set renderCanvas position back to relative so it can be positioned correctly
+      renderCanvas.current.style.position = "relative";
+    }
+
+    if (engine) {
+      engine.resize(true);
+    }
+  };
+
+  // Resize render canvas when window is resized
   useEffect(() => {
     if (window) {
-      const resize = () => {
-        if (renderCanvas.current) {
-          // Set canvas dimensions to the dimensions of the parent container
-          const parentContainer = renderCanvas.current.parentElement;
-          // Set renderCanvas position to fixed so it doesn't affect the parent container's dimensions
-          renderCanvas.current.style.position = "fixed";
-          if (parentContainer) {
-            renderCanvas.current.height = parentContainer.clientHeight;
-            renderCanvas.current.width = parentContainer.clientWidth;
-          }
-          // Set renderCanvas position back to relative so it can be positioned correctly
-          renderCanvas.current.style.position = "relative";
-        }
-
-        if (engine) {
-          engine.resize(true);
-        }
-      };
-
-      resize();
-      window.addEventListener("resize", resize);
+      resizeRenderCanvas();
+      window.addEventListener("resize", resizeRenderCanvas);
 
       return () => {
-        window.removeEventListener("resize", resize);
+        window.removeEventListener("resize", resizeRenderCanvas);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine]);
 
+  // Call app's scene settings setter when scene settings change
+  useEffect(() => {
+    if (app) {
+      app.setSceneSettings(sceneSettings);
+    }
+  }, [app, sceneSettings]);
+
+  // Resize render canvas when panel visibility changes
+  useEffect(() => {
+    resizeRenderCanvas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [panelVisibility]);
+
+  // Initialize Babylon app
   useEffect(() => {
     if (renderCanvas.current && !(engine && scene)) {
       const app = new BabylonApp(renderCanvas.current, (engine, scene) => {
@@ -49,6 +89,7 @@ export default function BabylonEditor() {
         setScene(scene);
         setLoaded(true);
       });
+      setApp(app);
     }
 
     return () => {
@@ -92,12 +133,34 @@ export default function BabylonEditor() {
               className="rounded-md focus:outline-none"
             />
           </div>
-          {/* TODO: Move this to a separate component */}
-          <div className="h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
-            <div className="p-1 w-full text-center text-xl font-bold bg-[#2c2c2c] rounded-md rounded-b-none">
-              Inspector
+          {panelVisibility.inspector ? (
+            <div className="h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
+              <div className="p-1 w-full text-center text-xl font-bold bg-[#2c2c2c] rounded-md rounded-b-none">
+                Inspector
+              </div>
+              <div className="p-1 w-full">
+                <select
+                  value={sceneSettings.transformGizmoMode}
+                  onChange={(ev) => {
+                    useEditorStore.setState((state) => ({
+                      sceneSettings: {
+                        ...state.sceneSettings,
+                        transformGizmoMode: ev.target.value as
+                          | "position"
+                          | "rotation"
+                          | "scale",
+                      },
+                    }));
+                  }}
+                  className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
+                >
+                  <option value="position">Position</option>
+                  <option value="rotation">Rotation</option>
+                  <option value="scale">Scale</option>
+                </select>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
         {/* BOTTOM BAR */}
         <div className="w-full h-[40px] rounded-md rounded-b-none flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#242424]">
@@ -112,7 +175,17 @@ export default function BabylonEditor() {
             className="p-1 h-[25px] flex-grow rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
             placeholder="Chat..."
           />
-          <button className="p-1 h-[25px] flex flex-col justify-center align-middle items-center">
+          <button
+            onClick={(_ev) => {
+              useEditorStore.setState((state) => ({
+                panelVisibility: {
+                  ...state.panelVisibility,
+                  inspector: !state.panelVisibility.inspector,
+                },
+              }));
+            }}
+            className="p-1 h-[25px] flex flex-col justify-center align-middle items-center"
+          >
             Inspector
           </button>
         </div>
