@@ -50,6 +50,7 @@ export default class App {
   canvas: HTMLCanvasElement | null = null;
   camera: FreeCamera | null = null;
   gizmoManager: GizmoManager | null = null;
+  sunShadowGenerator: ShadowGenerator | null = null;
   sceneSettings: SceneSettings = {
     transformGizmoMode: "position",
     newPrimitiveMeshType: "box",
@@ -153,6 +154,96 @@ export default class App {
     }
     this.gizmoManager.attachToMesh(mesh);
     this.gizmoManager.attachableMeshes?.push(mesh);
+
+    this.sunShadowGenerator?.addShadowCaster(mesh);
+  }
+
+  /**
+   * Prompt user to upload a new glTF mesh and adds it to the scene.
+   */
+  public importGLBMesh() {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".glb";
+
+    fileInput.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+
+      if (file) {
+        const fileURL = URL.createObjectURL(file);
+        console.log(fileURL);
+        SceneLoader.ImportMeshAsync(
+          "",
+          fileURL,
+          "",
+          this.scene,
+          null,
+          ".glb"
+        ).then(({ meshes }) => {
+          if (!this.gizmoManager) {
+            throw new Error("No gizmo manager");
+          }
+
+          const boundingBox = new BoundingBox(
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, 0)
+          );
+
+          meshes.forEach((mesh) => {
+            mesh.isPickable = true;
+            mesh.receiveShadows = true;
+            this.sunShadowGenerator?.addShadowCaster(mesh);
+
+            // Set base ambient color to white
+            if (mesh.material) {
+              if (
+                mesh.material instanceof PBRMaterial ||
+                mesh.material instanceof StandardMaterial
+              ) {
+                mesh.material.ambientColor = new Color3(1, 1, 1);
+                mesh.material.backFaceCulling = true;
+              }
+            }
+
+            // Expand the bounding box
+            boundingBox.reConstruct(
+              Vector3.Minimize(
+                boundingBox.minimumWorld,
+                mesh.getBoundingInfo().boundingBox.minimumWorld
+              ),
+              Vector3.Maximize(
+                boundingBox.maximumWorld,
+                mesh.getBoundingInfo().boundingBox.maximumWorld
+              )
+            );
+          });
+
+          // Make a transparent bounding box parent mesh for the vehicle
+          const boundingBoxMesh = MeshBuilder.CreateBox(
+            `boundingBox_${file.name}`,
+            {
+              width: boundingBox.maximumWorld.x - boundingBox.minimumWorld.x,
+              height: boundingBox.maximumWorld.y - boundingBox.minimumWorld.y,
+              depth: boundingBox.maximumWorld.z - boundingBox.minimumWorld.z,
+            },
+            this.scene
+          );
+          // Set the parent of the vehicle to the bounding box mesh
+          meshes[0].parent = boundingBoxMesh;
+
+          // Only the bounding box mesh is attachable for the gizmo manager
+          this.gizmoManager.attachableMeshes?.push(boundingBoxMesh);
+          boundingBoxMesh.isPickable = true;
+          boundingBoxMesh.isVisible = false;
+        });
+      }
+    };
+
+    fileInput.click();
   }
 
   /**
@@ -357,6 +448,7 @@ export default class App {
     sunShadowGenerator.filter =
       ShadowGenerator.FILTER_BLURCLOSEEXPONENTIALSHADOWMAP;
     sunShadowGenerator.transparencyShadow = true;
+    this.sunShadowGenerator = sunShadowGenerator;
 
     // SKYBOX
     this._setupSkybox(this.scene, skySun);

@@ -192,6 +192,14 @@ export default function BabylonEditor() {
                   </button>
                 </div>
                 <button
+                  className="w-full rounded-md bg-blue-400 dark:bg-[#303030] focus:outline-none"
+                  onClick={() => {
+                    app?.importGLBMesh();
+                  }}
+                >
+                  Import GLB Mesh
+                </button>
+                <button
                   className="w-full rounded-md bg-red-400 dark:bg-[#303030] focus:outline-none"
                   onClick={() => {
                     app?.deleteSelectedMesh();
