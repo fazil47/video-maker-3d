@@ -24,14 +24,25 @@ import {
   DefaultRenderingPipeline,
   GizmoManager,
   Camera,
+  Mesh,
 } from "@babylonjs/core";
 import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 
 export interface SceneSettings {
-  transformGizmoMode: "position" | "rotation" | "scale";
+  transformGizmoMode: TransformGizmoMode;
+  newPrimitiveMeshType: PrimitiveMeshType;
 }
+
+export type TransformGizmoMode = "position" | "rotation" | "scale";
+export type PrimitiveMeshType =
+  | "box"
+  | "sphere"
+  | "cylinder"
+  | "torus"
+  | "plane"
+  | "ground";
 
 export default class App {
   engine: WebGPUEngine | Engine | null = null;
@@ -39,6 +50,10 @@ export default class App {
   canvas: HTMLCanvasElement | null = null;
   camera: FreeCamera | null = null;
   gizmoManager: GizmoManager | null = null;
+  sceneSettings: SceneSettings = {
+    transformGizmoMode: "position",
+    newPrimitiveMeshType: "box",
+  };
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -53,27 +68,91 @@ export default class App {
     });
   }
 
+  /**
+   * Sets scene settings.
+   * @param settings New scene settings.
+   */
   public setSceneSettings(settings: SceneSettings) {
     if (!this.gizmoManager) {
       throw new Error("No gizmo manager");
     }
-    switch (settings.transformGizmoMode) {
-      case "position":
-        this.gizmoManager.positionGizmoEnabled = true;
-        this.gizmoManager.rotationGizmoEnabled = false;
-        this.gizmoManager.scaleGizmoEnabled = false;
-        break;
-      case "rotation":
-        this.gizmoManager.positionGizmoEnabled = false;
-        this.gizmoManager.rotationGizmoEnabled = true;
-        this.gizmoManager.scaleGizmoEnabled = false;
-        break;
-      case "scale":
-        this.gizmoManager.positionGizmoEnabled = false;
-        this.gizmoManager.rotationGizmoEnabled = false;
-        this.gizmoManager.scaleGizmoEnabled = true;
-        break;
+
+    if (settings.transformGizmoMode !== this.sceneSettings.transformGizmoMode) {
+      this.sceneSettings.transformGizmoMode = settings.transformGizmoMode;
+      switch (settings.transformGizmoMode) {
+        case "position":
+          this.gizmoManager.positionGizmoEnabled = true;
+          this.gizmoManager.rotationGizmoEnabled = false;
+          this.gizmoManager.scaleGizmoEnabled = false;
+          break;
+        case "rotation":
+          this.gizmoManager.positionGizmoEnabled = false;
+          this.gizmoManager.rotationGizmoEnabled = true;
+          this.gizmoManager.scaleGizmoEnabled = false;
+          break;
+        case "scale":
+          this.gizmoManager.positionGizmoEnabled = false;
+          this.gizmoManager.rotationGizmoEnabled = false;
+          this.gizmoManager.scaleGizmoEnabled = true;
+          break;
+      }
     }
+
+    if (
+      settings.newPrimitiveMeshType !== this.sceneSettings.newPrimitiveMeshType
+    ) {
+      this.sceneSettings.newPrimitiveMeshType = settings.newPrimitiveMeshType;
+    }
+  }
+
+  /**
+   * Adds a new primitive mesh to the scene based on the newPrimitiveMeshType scene setting.
+   */
+  public addPrimitiveMesh() {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    // Set base ambient color to white
+    const material = new StandardMaterial("material", this.scene);
+    material.ambientColor = new Color3(1, 1, 1);
+    material.backFaceCulling = true;
+
+    let mesh: Mesh;
+
+    switch (this.sceneSettings.newPrimitiveMeshType) {
+      case "box":
+        mesh = MeshBuilder.CreateBox("box", {}, this.scene);
+        break;
+      case "sphere":
+        mesh = MeshBuilder.CreateSphere("sphere", {}, this.scene);
+        break;
+      case "cylinder":
+        mesh = MeshBuilder.CreateCylinder("cylinder", {}, this.scene);
+        break;
+      case "torus":
+        mesh = MeshBuilder.CreateTorus("torus", {}, this.scene);
+        break;
+      case "plane":
+        mesh = MeshBuilder.CreatePlane("plane", {}, this.scene);
+        break;
+      case "ground":
+        mesh = MeshBuilder.CreateGround("ground", {}, this.scene);
+        break;
+      default:
+        throw new Error("Invalid mesh type");
+    }
+
+    mesh.isPickable = true;
+    mesh.checkCollisions = true;
+    mesh.receiveShadows = true;
+    mesh.material = material;
+
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+    this.gizmoManager.attachToMesh(mesh);
+    this.gizmoManager.attachableMeshes?.push(mesh);
   }
 
   /**
@@ -132,8 +211,9 @@ export default class App {
     // Create and setup GizmoManager
     const gizmoManager = new GizmoManager(this.scene);
     gizmoManager.clearGizmoOnEmptyPointerEvent = true;
+    gizmoManager.attachableMeshes = [];
+    gizmoManager.attachableNodes = [];
 
-    // TODO: use inspector to toggle gizmos
     gizmoManager.positionGizmoEnabled = true;
     gizmoManager.rotationGizmoEnabled = false;
     gizmoManager.scaleGizmoEnabled = false;

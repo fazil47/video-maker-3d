@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { Engine, Scene, WebGPUEngine } from "@babylonjs/core";
 import { create } from "zustand";
 
-import BabylonApp, { SceneSettings } from "@/babylon/app";
+import BabylonApp, {
+  PrimitiveMeshType,
+  SceneSettings,
+  TransformGizmoMode,
+} from "@/babylon/app";
 
 interface EditorState {
   panelVisibility: {
@@ -21,6 +25,7 @@ const useEditorStore = create<EditorState>((set) => ({
   },
   sceneSettings: {
     transformGizmoMode: "position",
+    newPrimitiveMeshType: "box",
   },
 }));
 
@@ -135,29 +140,57 @@ export default function BabylonEditor() {
           </div>
           {panelVisibility.inspector ? (
             <div className="h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
-              <div className="p-1 w-full text-center text-xl font-bold bg-[#2c2c2c] rounded-md rounded-b-none">
+              <div className="p-1 w-full text-center text-xl font-bold bg-gray-200 dark:bg-[#2c2c2c] rounded-md rounded-b-none">
                 Inspector
               </div>
-              <div className="p-1 w-full">
+              <div className="p-1 w-full flex flex-col items-center align-middle gap-2">
                 <select
                   value={sceneSettings.transformGizmoMode}
                   onChange={(ev) => {
                     useEditorStore.setState((state) => ({
                       sceneSettings: {
                         ...state.sceneSettings,
-                        transformGizmoMode: ev.target.value as
-                          | "position"
-                          | "rotation"
-                          | "scale",
+                        transformGizmoMode: ev.target
+                          .value as TransformGizmoMode,
                       },
                     }));
                   }}
-                  className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
+                  className="w-full rounded-md bg-gray-300 dark:bg-[#303030] focus:outline-none"
                 >
                   <option value="position">Position</option>
                   <option value="rotation">Rotation</option>
                   <option value="scale">Scale</option>
                 </select>
+                <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200">
+                  <select
+                    value={sceneSettings.newPrimitiveMeshType}
+                    onChange={(ev) => {
+                      useEditorStore.setState((state) => ({
+                        sceneSettings: {
+                          ...state.sceneSettings,
+                          newPrimitiveMeshType: ev.target
+                            .value as PrimitiveMeshType,
+                        },
+                      }));
+                    }}
+                    className="w-full rounded-md bg-gray-300 dark:bg-[#303030] focus:outline-none"
+                  >
+                    <option value="box">Box</option>
+                    <option value="sphere">Sphere</option>
+                    <option value="cylinder">Cylinder</option>
+                    <option value="torus">Torus</option>
+                    <option value="plane">Plane</option>
+                    <option value="ground">Ground</option>
+                  </select>
+                  <button
+                    className="w-full rounded-md bg-blue-400 dark:bg-[#303030] focus:outline-none"
+                    onClick={() => {
+                      app?.addPrimitiveMesh();
+                    }}
+                  >
+                    Add Mesh
+                  </button>
+                </div>
               </div>
             </div>
           ) : null}
