@@ -161,7 +161,7 @@ export default function BabylonEditor() {
                   <option value="rotation">Rotation</option>
                   <option value="scale">Scale</option>
                 </select>
-                <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200">
+                <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
                   <select
                     value={sceneSettings.newPrimitiveMeshType}
                     onChange={(ev) => {
@@ -173,7 +173,7 @@ export default function BabylonEditor() {
                         },
                       }));
                     }}
-                    className="w-full rounded-md bg-gray-300 dark:bg-[#303030] focus:outline-none"
+                    className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
                   >
                     <option value="box">Box</option>
                     <option value="sphere">Sphere</option>
@@ -183,7 +183,7 @@ export default function BabylonEditor() {
                     <option value="ground">Ground</option>
                   </select>
                   <button
-                    className="w-full rounded-md bg-blue-400 dark:bg-[#303030] focus:outline-none"
+                    className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
                     onClick={() => {
                       app?.addPrimitiveMesh();
                     }}
@@ -192,7 +192,7 @@ export default function BabylonEditor() {
                   </button>
                 </div>
                 <button
-                  className="w-full rounded-md bg-blue-400 dark:bg-[#303030] focus:outline-none"
+                  className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
                   onClick={() => {
                     app?.importGLBMesh();
                   }}
@@ -200,7 +200,7 @@ export default function BabylonEditor() {
                   Import GLB Mesh
                 </button>
                 <button
-                  className="w-full rounded-md bg-red-400 dark:bg-[#303030] focus:outline-none"
+                  className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
                   onClick={() => {
                     app?.deleteSelectedMesh();
                   }}
@@ -213,10 +213,10 @@ export default function BabylonEditor() {
         </div>
         {/* BOTTOM BAR */}
         <div className="w-full h-[40px] rounded-md rounded-b-none flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#242424]">
-          <button className="p-1 h-[25px] flex flex-col justify-center align-middle items-center">
+          <button className="py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md">
             Board
           </button>
-          <button className="p-1 h-[25px] flex flex-col justify-center align-middle items-center">
+          <button className="py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md">
             Files
           </button>
           <input
@@ -233,7 +233,9 @@ export default function BabylonEditor() {
                 },
               }));
             }}
-            className="p-1 h-[25px] flex flex-col justify-center align-middle items-center"
+            className={`py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md ${
+              panelVisibility.inspector ? "bg-gray-200 dark:bg-[#303030]" : ""
+            }`}
           >
             Inspector
           </button>
