@@ -191,6 +191,14 @@ export default function BabylonEditor() {
                     Add Mesh
                   </button>
                 </div>
+                <button
+                  className="w-full rounded-md bg-red-400 dark:bg-[#303030] focus:outline-none"
+                  onClick={() => {
+                    app?.deleteSelectedMesh();
+                  }}
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ) : null}

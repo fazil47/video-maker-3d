@@ -156,6 +156,28 @@ export default class App {
   }
 
   /**
+   * Deletes the selected mesh.
+   */
+  public deleteSelectedMesh() {
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    const selectedMesh = this.gizmoManager.gizmos.positionGizmo?.attachedMesh;
+    if (selectedMesh) {
+      this.gizmoManager.attachToMesh(null);
+      this.gizmoManager.attachableMeshes?.splice(
+        this.gizmoManager.attachableMeshes.indexOf(selectedMesh),
+        1
+      );
+      selectedMesh.dispose();
+    }
+  }
+
+  /**
    * Initializes the babylon engine and scene asynchronously.
    * @param canvas The canvas to render to.
    */
