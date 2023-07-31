@@ -115,7 +115,7 @@ export default function BabylonEditor() {
         </div>
       )}
       <div
-        className="h-screen w-screen m-0 flex-col px-1 gap-1"
+        className="overflow-hidden h-screen w-screen m-0 flex-col px-1 gap-1"
         style={{
           display: loaded ? "flex" : "none",
         }}
@@ -128,7 +128,7 @@ export default function BabylonEditor() {
           <button className="p-1">Help</button>
         </menu>
         {/* PANELS */}
-        <div className="w-full flex-grow flex flex-row gap-1 justify-center items-center align-middle">
+        <div className="overflow-hidden w-full flex-grow flex flex-row gap-1 justify-center items-center align-middle">
           {/* <div className="p-2 flex flex-col items-center rounded-md bg-gray-200 dark:bg-black">
             <p className="text-3xl font-bold">Story Board</p>
           </div> */}
@@ -139,74 +139,95 @@ export default function BabylonEditor() {
             />
           </div>
           {panelVisibility.inspector ? (
-            <div className="h-full min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
-              <div className="p-1 w-full text-center text-xl font-bold bg-gray-200 dark:bg-[#2c2c2c] rounded-md rounded-b-none">
+            <div className="h-full overflow-hidden min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
+              <div className="p-1 w-full text-center text-xl font-bold rounded-md rounded-b-none">
                 Inspector
               </div>
-              <div className="p-1 w-full flex flex-col items-center align-middle gap-2">
-                <select
-                  value={sceneSettings.transformGizmoMode}
-                  onChange={(ev) => {
-                    useEditorStore.setState((state) => ({
-                      sceneSettings: {
-                        ...state.sceneSettings,
-                        transformGizmoMode: ev.target
-                          .value as TransformGizmoMode,
-                      },
-                    }));
-                  }}
-                  className="w-full rounded-md bg-gray-300 dark:bg-[#303030] focus:outline-none"
-                >
-                  <option value="position">Position</option>
-                  <option value="rotation">Rotation</option>
-                  <option value="scale">Scale</option>
-                </select>
-                <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
+              <div className="overflow-hidden flex-grow w-full flex flex-col items-center gap-2">
+                <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#2c2c2c]">
+                  <ul>
+                    <li>Object 1</li>
+                    <li>Object 2</li>
+                    <li>Object 3</li>
+                    <li>Object 4</li>
+                    <li>Object 5</li>
+                    <li>Object 6</li>
+                    <li>Object 7</li>
+                    <li>Object 8</li>
+                    <li>Object 9</li>
+                    <li>Object 10</li>
+                    <li>Object 11</li>
+                    <li>Object 12</li>
+                  </ul>
+                </div>
+                <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#2c2c2c]">
                   <select
-                    value={sceneSettings.newPrimitiveMeshType}
+                    value={sceneSettings.transformGizmoMode}
                     onChange={(ev) => {
                       useEditorStore.setState((state) => ({
                         sceneSettings: {
                           ...state.sceneSettings,
-                          newPrimitiveMeshType: ev.target
-                            .value as PrimitiveMeshType,
+                          transformGizmoMode: ev.target
+                            .value as TransformGizmoMode,
                         },
                       }));
                     }}
-                    className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                    className="w-full rounded-md bg-gray-300 dark:bg-[#303030] focus:outline-none"
                   >
-                    <option value="box">Box</option>
-                    <option value="sphere">Sphere</option>
-                    <option value="cylinder">Cylinder</option>
-                    <option value="torus">Torus</option>
-                    <option value="plane">Plane</option>
-                    <option value="ground">Ground</option>
+                    <option value="position">Position</option>
+                    <option value="rotation">Rotation</option>
+                    <option value="scale">Scale</option>
                   </select>
+                  <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
+                    Material properties
+                  </div>
+                  <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
+                    <select
+                      value={sceneSettings.newPrimitiveMeshType}
+                      onChange={(ev) => {
+                        useEditorStore.setState((state) => ({
+                          sceneSettings: {
+                            ...state.sceneSettings,
+                            newPrimitiveMeshType: ev.target
+                              .value as PrimitiveMeshType,
+                          },
+                        }));
+                      }}
+                      className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                    >
+                      <option value="box">Box</option>
+                      <option value="sphere">Sphere</option>
+                      <option value="cylinder">Cylinder</option>
+                      <option value="torus">Torus</option>
+                      <option value="plane">Plane</option>
+                      <option value="ground">Ground</option>
+                    </select>
+                    <button
+                      className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                      onClick={() => {
+                        app?.addPrimitiveMesh();
+                      }}
+                    >
+                      Add Mesh
+                    </button>
+                  </div>
                   <button
-                    className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                    className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
                     onClick={() => {
-                      app?.addPrimitiveMesh();
+                      app?.importGLBMesh();
                     }}
                   >
-                    Add Mesh
+                    Import GLB Mesh
+                  </button>
+                  <button
+                    className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
+                    onClick={() => {
+                      app?.deleteSelectedMesh();
+                    }}
+                  >
+                    Delete
                   </button>
                 </div>
-                <button
-                  className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
-                  onClick={() => {
-                    app?.importGLBMesh();
-                  }}
-                >
-                  Import GLB Mesh
-                </button>
-                <button
-                  className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
-                  onClick={() => {
-                    app?.deleteSelectedMesh();
-                  }}
-                >
-                  Delete
-                </button>
               </div>
             </div>
           ) : null}
