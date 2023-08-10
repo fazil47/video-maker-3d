@@ -25,6 +25,8 @@ import {
   GizmoManager,
   Camera,
   Mesh,
+  Node,
+  Nullable,
 } from "@babylonjs/core";
 import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -56,17 +58,38 @@ export default class App {
     newPrimitiveMeshType: "box",
   };
 
+  /**
+   * This function initializes the engine and scene asynchronously.
+   * @param canvas The canvas element to render to.
+   * @param onInitialized Callback function to call when the engine and scene are initialized.
+   * @param onAttachedToObjectCallback Callback function to call when the gizmo manager is attached to a node.
+   */
   constructor(
     canvas: HTMLCanvasElement,
-    onInitialized: (engine: Engine | WebGPUEngine, scene: Scene) => void
+    onInitialized: (engine: Engine | WebGPUEngine, scene: Scene) => void,
+    onAttachedToObjectCallback?: (node: Nullable<Node>) => void
   ) {
     // Using a separate initialize function because the constructor cannot be async
-    this._initialize(canvas).then(() => {
+    this._initialize(canvas, onAttachedToObjectCallback).then(() => {
       if (!this.engine || !this.scene) {
         throw new Error("No engine or scene");
       }
       onInitialized(this.engine, this.scene);
     });
+  }
+
+  /**
+   * Optimizes the scene for performance.
+   */
+  public optimizeScene() {
+    this._setPerformancePriority("intermediate");
+  }
+
+  /**
+   * Unoptimizes the scene for compatibility.
+   */
+  public unoptimizeScene() {
+    this._setPerformancePriority("compatible");
   }
 
   /**
@@ -247,9 +270,9 @@ export default class App {
   }
 
   /**
-   * Deletes the selected mesh.
+   * Deletes the selected node.
    */
-  public deleteSelectedMesh() {
+  public deleteSelectedNode() {
     if (!this.gizmoManager) {
       throw new Error("No gizmo manager");
     }
@@ -257,7 +280,7 @@ export default class App {
       throw new Error("No scene");
     }
 
-    const selectedMesh = this.gizmoManager.gizmos.positionGizmo?.attachedMesh;
+    let selectedMesh = this.gizmoManager.gizmos.positionGizmo?.attachedMesh;
     if (selectedMesh) {
       this.gizmoManager.attachToMesh(null);
       this.gizmoManager.attachableMeshes?.splice(
@@ -271,8 +294,12 @@ export default class App {
   /**
    * Initializes the babylon engine and scene asynchronously.
    * @param canvas The canvas to render to.
+   * @param onAttachedToObjectCallback Callback to be called when a mesh is selected.
    */
-  private async _initialize(canvas: HTMLCanvasElement): Promise<void> {
+  private async _initialize(
+    canvas: HTMLCanvasElement,
+    onAttachedToObjectCallback?: (node: Nullable<Node>) => void
+  ): Promise<void> {
     // create the canvas html element and attach it to the webpage
     this.canvas = canvas;
 
@@ -283,9 +310,9 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this._setPerformancePriority("intermediate");
+    this.optimizeScene();
 
-    this.gizmoManager = this._createGizmoManager();
+    this.gizmoManager = this._createGizmoManager(onAttachedToObjectCallback);
     this.camera = this._createController();
     this._createEnvironment();
 
@@ -315,8 +342,11 @@ export default class App {
 
   /**
    * Creates the gizmo manager.
+   * @param onAttachedToObjectCallback Callback to be called when the gizmo is attached to a node.
    */
-  private _createGizmoManager(): GizmoManager {
+  private _createGizmoManager(
+    onAttachedToObjectCallback?: (node: Nullable<Node>) => void
+  ): GizmoManager {
     if (!this.scene) {
       throw new Error("No scene");
     }
@@ -330,6 +360,11 @@ export default class App {
     gizmoManager.positionGizmoEnabled = true;
     gizmoManager.rotationGizmoEnabled = false;
     gizmoManager.scaleGizmoEnabled = false;
+
+    if (onAttachedToObjectCallback) {
+      gizmoManager.onAttachedToNodeObservable.add(onAttachedToObjectCallback);
+      gizmoManager.onAttachedToMeshObservable.add(onAttachedToObjectCallback);
+    }
 
     return gizmoManager;
   }

@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Engine, Scene, WebGPUEngine } from "@babylonjs/core";
+import {
+  Color3,
+  Engine,
+  Mesh,
+  Node,
+  PBRMaterial,
+  Scene,
+  StandardMaterial,
+  WebGPUEngine,
+} from "@babylonjs/core";
 import { create } from "zustand";
 
 import BabylonApp, {
@@ -36,6 +45,7 @@ export default function BabylonEditor() {
   const [engine, setEngine] = useState<Engine | WebGPUEngine | null>(null);
   const [scene, setScene] = useState<Scene | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [selectedObject, setSelectedObject] = useState<Node | Mesh | null>();
 
   const panelVisibility = useEditorStore((state) => state.panelVisibility);
   const sceneSettings = useEditorStore((state) => state.sceneSettings);
@@ -89,11 +99,15 @@ export default function BabylonEditor() {
   // Initialize Babylon app
   useEffect(() => {
     if (renderCanvas.current && !(engine && scene)) {
-      const app = new BabylonApp(renderCanvas.current, (engine, scene) => {
-        setEngine(engine);
-        setScene(scene);
-        setLoaded(true);
-      });
+      const app = new BabylonApp(
+        renderCanvas.current,
+        (engine, scene) => {
+          setEngine(engine);
+          setScene(scene);
+          setLoaded(true);
+        },
+        (obj) => setSelectedObject(obj)
+      );
       setApp(app);
     }
 
@@ -179,7 +193,51 @@ export default function BabylonEditor() {
                     <option value="scale">Scale</option>
                   </select>
                   <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
-                    Material properties
+                    {selectedObject && selectedObject instanceof Mesh ? (
+                      selectedObject.material instanceof PBRMaterial ? (
+                        <input
+                          type="color"
+                          value={selectedObject.material.albedoColor.toHexString()}
+                          onChange={(ev) => {
+                            if (
+                              selectedObject.material instanceof PBRMaterial
+                            ) {
+                              app?.unoptimizeScene();
+                              selectedObject.material.unfreeze();
+                              selectedObject.material.albedoColor =
+                                Color3.FromHexString(ev.target.value);
+                              selectedObject.material.ambientColor =
+                                Color3.FromHexString(ev.target.value);
+                              window.setTimeout(() => {
+                                app?.optimizeScene();
+                              }, 0);
+                            }
+                          }}
+                        />
+                      ) : selectedObject.material instanceof
+                        StandardMaterial ? (
+                        <input
+                          type="color"
+                          value={selectedObject.material.diffuseColor.toHexString()}
+                          onChange={(ev) => {
+                            if (
+                              selectedObject.material instanceof
+                              StandardMaterial
+                            ) {
+                              app?.unoptimizeScene();
+                              selectedObject.material.unfreeze();
+                              selectedObject.material.diffuseColor =
+                                Color3.FromHexString(ev.target.value);
+                              selectedObject.material.ambientColor =
+                                Color3.FromHexString(ev.target.value);
+                              window.setTimeout(() => {
+                                app?.optimizeScene();
+                              }, 0);
+                            }
+                          }}
+                        />
+                      ) : null
+                    ) : null}
                   </div>
                   <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
                     <select
@@ -222,7 +280,7 @@ export default function BabylonEditor() {
                   <button
                     className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
                     onClick={() => {
-                      app?.deleteSelectedMesh();
+                      app?.deleteSelectedNode();
                     }}
                   >
                     Delete
