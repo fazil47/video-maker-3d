@@ -208,6 +208,10 @@ export default function BabylonEditor() {
                                 Color3.FromHexString(ev.target.value);
                               selectedObject.material.ambientColor =
                                 Color3.FromHexString(ev.target.value);
+                              selectedObject.material.reflectionColor =
+                                Color3.FromHexString(ev.target.value);
+                              selectedObject.material.reflectivityColor =
+                                Color3.FromHexString(ev.target.value);
                               window.setTimeout(() => {
                                 app?.optimizeScene();
                               }, 0);
@@ -229,6 +233,8 @@ export default function BabylonEditor() {
                               selectedObject.material.diffuseColor =
                                 Color3.FromHexString(ev.target.value);
                               selectedObject.material.ambientColor =
+                                Color3.FromHexString(ev.target.value);
+                              selectedObject.material.specularColor =
                                 Color3.FromHexString(ev.target.value);
                               window.setTimeout(() => {
                                 app?.optimizeScene();
