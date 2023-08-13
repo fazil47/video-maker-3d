@@ -195,53 +195,141 @@ export default function BabylonEditor() {
                   <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
                     {selectedObject && selectedObject instanceof Mesh ? (
                       selectedObject.material instanceof PBRMaterial ? (
-                        <input
-                          type="color"
-                          value={selectedObject.material.albedoColor.toHexString()}
-                          onChange={(ev) => {
-                            if (
-                              selectedObject.material instanceof PBRMaterial
-                            ) {
-                              app?.unoptimizeScene();
-                              selectedObject.material.unfreeze();
-                              selectedObject.material.albedoColor =
-                                Color3.FromHexString(ev.target.value);
-                              selectedObject.material.ambientColor =
-                                Color3.FromHexString(ev.target.value);
-                              selectedObject.material.reflectionColor =
-                                Color3.FromHexString(ev.target.value);
-                              selectedObject.material.reflectivityColor =
-                                Color3.FromHexString(ev.target.value);
-                              window.setTimeout(() => {
-                                app?.optimizeScene();
-                              }, 0);
-                            }
-                          }}
-                        />
+                        <>
+                          <label>Albedo Color</label>
+                          <input
+                            type="color"
+                            value={selectedObject.material.albedoColor.toHexString()}
+                            onChange={(ev) => {
+                              if (
+                                selectedObject.material instanceof PBRMaterial
+                              ) {
+                                app?.unoptimizeScene();
+                                selectedObject.material.unfreeze();
+                                selectedObject.material.albedoColor =
+                                  Color3.FromHexString(ev.target.value);
+                                window.setTimeout(() => {
+                                  app?.optimizeScene();
+                                }, 0);
+                              }
+                            }}
+                          />
+                          <label>Ambient Color</label>
+                          <input
+                            type="color"
+                            value={selectedObject.material.ambientColor.toHexString()}
+                            onChange={(ev) => {
+                              if (
+                                selectedObject.material instanceof PBRMaterial
+                              ) {
+                                app?.unoptimizeScene();
+                                selectedObject.material.unfreeze();
+                                selectedObject.material.ambientColor =
+                                  Color3.FromHexString(ev.target.value);
+                                window.setTimeout(() => {
+                                  app?.optimizeScene();
+                                }, 0);
+                              }
+                            }}
+                          />
+                          <label>Reflection Color</label>
+                          <input
+                            type="color"
+                            value={selectedObject.material.reflectionColor.toHexString()}
+                            onChange={(ev) => {
+                              if (
+                                selectedObject.material instanceof PBRMaterial
+                              ) {
+                                app?.unoptimizeScene();
+                                selectedObject.material.unfreeze();
+                                selectedObject.material.reflectionColor =
+                                  Color3.FromHexString(ev.target.value);
+                                window.setTimeout(() => {
+                                  app?.optimizeScene();
+                                }, 0);
+                              }
+                            }}
+                          />
+                          <label>Reflectivity Color</label>
+                          <input
+                            type="color"
+                            value={selectedObject.material.reflectivityColor.toHexString()}
+                            onChange={(ev) => {
+                              if (
+                                selectedObject.material instanceof PBRMaterial
+                              ) {
+                                app?.unoptimizeScene();
+                                selectedObject.material.unfreeze();
+                                selectedObject.material.reflectivityColor =
+                                  Color3.FromHexString(ev.target.value);
+                                window.setTimeout(() => {
+                                  app?.optimizeScene();
+                                }, 0);
+                              }
+                            }}
+                          />
+                        </>
                       ) : selectedObject.material instanceof
                         StandardMaterial ? (
-                        <input
-                          type="color"
-                          value={selectedObject.material.diffuseColor.toHexString()}
-                          onChange={(ev) => {
-                            if (
-                              selectedObject.material instanceof
-                              StandardMaterial
-                            ) {
-                              app?.unoptimizeScene();
-                              selectedObject.material.unfreeze();
-                              selectedObject.material.diffuseColor =
-                                Color3.FromHexString(ev.target.value);
-                              selectedObject.material.ambientColor =
-                                Color3.FromHexString(ev.target.value);
-                              selectedObject.material.specularColor =
-                                Color3.FromHexString(ev.target.value);
-                              window.setTimeout(() => {
-                                app?.optimizeScene();
-                              }, 0);
-                            }
-                          }}
-                        />
+                        <>
+                          <label>Diffuse Color</label>
+                          <input
+                            type="color"
+                            value={selectedObject.material.diffuseColor.toHexString()}
+                            onChange={(ev) => {
+                              if (
+                                selectedObject.material instanceof
+                                StandardMaterial
+                              ) {
+                                app?.unoptimizeScene();
+                                selectedObject.material.unfreeze();
+                                selectedObject.material.diffuseColor =
+                                  Color3.FromHexString(ev.target.value);
+                                window.setTimeout(() => {
+                                  app?.optimizeScene();
+                                }, 0);
+                              }
+                            }}
+                          />
+                          <label>Ambient Color</label>
+                          <input
+                            type="color"
+                            value={selectedObject.material.ambientColor.toHexString()}
+                            onChange={(ev) => {
+                              if (
+                                selectedObject.material instanceof
+                                StandardMaterial
+                              ) {
+                                app?.unoptimizeScene();
+                                selectedObject.material.unfreeze();
+                                selectedObject.material.ambientColor =
+                                  Color3.FromHexString(ev.target.value);
+                                window.setTimeout(() => {
+                                  app?.optimizeScene();
+                                }, 0);
+                              }
+                            }}
+                          />
+                          <label>Specular Color</label>
+                          <input
+                            type="color"
+                            value={selectedObject.material.specularColor.toHexString()}
+                            onChange={(ev) => {
+                              if (
+                                selectedObject.material instanceof
+                                StandardMaterial
+                              ) {
+                                app?.unoptimizeScene();
+                                selectedObject.material.unfreeze();
+                                selectedObject.material.specularColor =
+                                  Color3.FromHexString(ev.target.value);
+                                window.setTimeout(() => {
+                                  app?.optimizeScene();
+                                }, 0);
+                              }
+                            }}
+                          />
+                        </>
                       ) : null
                     ) : null}
                   </div>
