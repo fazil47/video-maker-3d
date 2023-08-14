@@ -276,6 +276,85 @@ export default function BabylonEditor() {
                               }}
                             />
                           </div>
+                          <div>
+                            <label>Metallic</label>
+                            <input
+                              type="range"
+                              min={0}
+                              max={1}
+                              value={
+                                selectedObject.material.metallic
+                                  ? selectedObject.material.metallic
+                                  : 0
+                              }
+                              onChange={(ev) => {
+                                if (
+                                  selectedObject.material instanceof PBRMaterial
+                                ) {
+                                  app?.unoptimizeScene();
+                                  selectedObject.material.unfreeze();
+                                  selectedObject.material.metallic = parseFloat(
+                                    ev.target.value
+                                  );
+                                  window.setTimeout(() => {
+                                    app?.optimizeScene();
+                                  }, 0);
+                                }
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label>Roughness</label>
+                            <input
+                              type="range"
+                              min={0}
+                              max={1}
+                              value={
+                                selectedObject.material.roughness
+                                  ? selectedObject.material.roughness
+                                  : 0
+                              }
+                              onChange={(ev) => {
+                                if (
+                                  selectedObject.material instanceof PBRMaterial
+                                ) {
+                                  app?.unoptimizeScene();
+                                  selectedObject.material.unfreeze();
+                                  selectedObject.material.roughness =
+                                    parseFloat(ev.target.value);
+                                  window.setTimeout(() => {
+                                    app?.optimizeScene();
+                                  }, 0);
+                                }
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label>Specular Intensity</label>
+                            <input
+                              type="range"
+                              min={0}
+                              max={1}
+                              value={
+                                selectedObject.material.specularIntensity
+                                  ? selectedObject.material.specularIntensity
+                                  : 0
+                              }
+                              onChange={(ev) => {
+                                if (
+                                  selectedObject.material instanceof PBRMaterial
+                                ) {
+                                  app?.unoptimizeScene();
+                                  selectedObject.material.unfreeze();
+                                  selectedObject.material.specularIntensity =
+                                    parseFloat(ev.target.value);
+                                  window.setTimeout(() => {
+                                    app?.optimizeScene();
+                                  }, 0);
+                                }
+                              }}
+                            />
+                          </div>
                         </>
                       ) : selectedObject.material instanceof
                         StandardMaterial ? (
@@ -336,6 +415,32 @@ export default function BabylonEditor() {
                                   selectedObject.material.unfreeze();
                                   selectedObject.material.specularColor =
                                     Color3.FromHexString(ev.target.value);
+                                  window.setTimeout(() => {
+                                    app?.optimizeScene();
+                                  }, 0);
+                                }
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label>Roughness</label>
+                            <input
+                              type="range"
+                              min={0}
+                              max={1}
+                              value={
+                                selectedObject.material.roughness
+                                  ? selectedObject.material.roughness
+                                  : 0
+                              }
+                              onChange={(ev) => {
+                                if (
+                                  selectedObject.material instanceof PBRMaterial
+                                ) {
+                                  app?.unoptimizeScene();
+                                  selectedObject.material.unfreeze();
+                                  selectedObject.material.roughness =
+                                    parseFloat(ev.target.value);
                                   window.setTimeout(() => {
                                     app?.optimizeScene();
                                   }, 0);
