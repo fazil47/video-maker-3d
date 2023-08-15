@@ -9,6 +9,7 @@ import {
   PBRMaterial,
   Scene,
   StandardMaterial,
+  Texture,
   WebGPUEngine,
 } from "@babylonjs/core";
 import { create } from "zustand";
@@ -196,6 +197,69 @@ export default function BabylonEditor() {
                     {selectedObject && selectedObject instanceof Mesh ? (
                       selectedObject.material instanceof PBRMaterial ? (
                         <>
+                          {/* TODO: These controls need to be converted into components with state */}
+                          <div>
+                            <label>Albedo Texture</label>
+                            {selectedObject.material.albedoTexture ? (
+                              <button
+                                className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                                onClick={() => {
+                                  if (
+                                    selectedObject.material instanceof
+                                    PBRMaterial
+                                  ) {
+                                    app?.unoptimizeScene();
+                                    selectedObject.material.unfreeze();
+                                    selectedObject.material.albedoTexture =
+                                      null;
+                                    window.setTimeout(() => {
+                                      app?.optimizeScene();
+                                    }, 0);
+                                  }
+                                }}
+                              >
+                                Remove Albedo Texture
+                              </button>
+                            ) : (
+                              <button
+                                className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                                onClick={() => {
+                                  const fileInput =
+                                    document.createElement("input");
+                                  fileInput.type = "file";
+                                  fileInput.accept = "image/*";
+                                  fileInput.onchange = (ev) => {
+                                    if (
+                                      ev.target &&
+                                      ev.target instanceof HTMLInputElement &&
+                                      ev.target.files
+                                    ) {
+                                      const file = ev.target.files[0];
+
+                                      if (
+                                        file &&
+                                        selectedObject.material instanceof
+                                          PBRMaterial
+                                      ) {
+                                        const fileURL =
+                                          URL.createObjectURL(file);
+                                        app?.unoptimizeScene();
+                                        selectedObject.material.unfreeze();
+                                        selectedObject.material.albedoTexture =
+                                          new Texture(fileURL, scene);
+                                        window.setTimeout(() => {
+                                          app?.optimizeScene();
+                                        }, 0);
+                                      }
+                                    }
+                                  };
+                                  fileInput.click();
+                                }}
+                              >
+                                Add Albedo Texture
+                              </button>
+                            )}
+                          </div>
                           <div>
                             <label>Albedo Color</label>
                             <input
@@ -282,6 +346,7 @@ export default function BabylonEditor() {
                               type="range"
                               min={0}
                               max={1}
+                              step={0.01}
                               value={
                                 selectedObject.material.metallic
                                   ? selectedObject.material.metallic
@@ -309,6 +374,7 @@ export default function BabylonEditor() {
                               type="range"
                               min={0}
                               max={1}
+                              step={0.01}
                               value={
                                 selectedObject.material.roughness
                                   ? selectedObject.material.roughness
@@ -335,6 +401,7 @@ export default function BabylonEditor() {
                               type="range"
                               min={0}
                               max={1}
+                              step={0.01}
                               value={
                                 selectedObject.material.specularIntensity
                                   ? selectedObject.material.specularIntensity
@@ -359,6 +426,69 @@ export default function BabylonEditor() {
                       ) : selectedObject.material instanceof
                         StandardMaterial ? (
                         <>
+                          {/* TODO: These controls need to be converted into components with state */}
+                          <div>
+                            <label>Diffuse Texture</label>
+                            {selectedObject.material.diffuseTexture ? (
+                              <button
+                                className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                                onClick={() => {
+                                  if (
+                                    selectedObject.material instanceof
+                                    StandardMaterial
+                                  ) {
+                                    app?.unoptimizeScene();
+                                    selectedObject.material.unfreeze();
+                                    selectedObject.material.diffuseTexture =
+                                      null;
+                                    window.setTimeout(() => {
+                                      app?.optimizeScene();
+                                    }, 0);
+                                  }
+                                }}
+                              >
+                                Remove Diffuse Texture
+                              </button>
+                            ) : (
+                              <button
+                                className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+                                onClick={() => {
+                                  const fileInput =
+                                    document.createElement("input");
+                                  fileInput.type = "file";
+                                  fileInput.accept = "image/*";
+                                  fileInput.onchange = (ev) => {
+                                    if (
+                                      ev.target &&
+                                      ev.target instanceof HTMLInputElement &&
+                                      ev.target.files
+                                    ) {
+                                      const file = ev.target.files[0];
+
+                                      if (
+                                        file &&
+                                        selectedObject.material instanceof
+                                          StandardMaterial
+                                      ) {
+                                        const fileURL =
+                                          URL.createObjectURL(file);
+                                        app?.unoptimizeScene();
+                                        selectedObject.material.unfreeze();
+                                        selectedObject.material.diffuseTexture =
+                                          new Texture(fileURL, scene);
+                                        window.setTimeout(() => {
+                                          app?.optimizeScene();
+                                        }, 0);
+                                      }
+                                    }
+                                  };
+                                  fileInput.click();
+                                }}
+                              >
+                                Add Diffuse Texture
+                              </button>
+                            )}
+                          </div>
                           <div>
                             <label>Diffuse Color</label>
                             <input
@@ -423,23 +553,25 @@ export default function BabylonEditor() {
                             />
                           </div>
                           <div>
-                            <label>Roughness</label>
+                            <label>Specular Power</label>
                             <input
                               type="range"
                               min={0}
                               max={1}
+                              step={0.01}
                               value={
-                                selectedObject.material.roughness
-                                  ? selectedObject.material.roughness
+                                selectedObject.material.specularPower
+                                  ? selectedObject.material.specularPower
                                   : 0
                               }
                               onChange={(ev) => {
                                 if (
-                                  selectedObject.material instanceof PBRMaterial
+                                  selectedObject.material instanceof
+                                  StandardMaterial
                                 ) {
                                   app?.unoptimizeScene();
                                   selectedObject.material.unfreeze();
-                                  selectedObject.material.roughness =
+                                  selectedObject.material.specularPower =
                                     parseFloat(ev.target.value);
                                   window.setTimeout(() => {
                                     app?.optimizeScene();
