@@ -27,6 +27,7 @@ import {
   Mesh,
   Node,
   Nullable,
+  SceneSerializer,
 } from "@babylonjs/core";
 import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -57,6 +58,8 @@ export default class App {
     transformGizmoMode: "position",
     newPrimitiveMeshType: "box",
   };
+  savedSceneURL: string | null = null;
+  savedSceneFilename: string = "scene"; // TODO: This has to be changed for to support multi-scene projects
 
   /**
    * This function initializes the engine and scene asynchronously.
@@ -127,6 +130,75 @@ export default class App {
     ) {
       this.sceneSettings.newPrimitiveMeshType = settings.newPrimitiveMeshType;
     }
+  }
+
+  /**
+   * Serializes the scene and saves it to a file.
+   */
+  saveScene() {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    if (this.savedSceneURL) {
+      window.URL.revokeObjectURL(this.savedSceneURL);
+    }
+
+    const serializedScene = SceneSerializer.Serialize(this.scene);
+
+    const strMesh = JSON.stringify(serializedScene);
+
+    if (
+      this.savedSceneFilename.toLowerCase().lastIndexOf(".babylon") !==
+        this.savedSceneFilename.length - 8 ||
+      this.savedSceneFilename.length < 9
+    ) {
+      this.savedSceneFilename += ".babylon";
+    }
+
+    const blob = new Blob([strMesh], { type: "octet/stream" });
+
+    // turn blob into an object URL; saved as a member, so can be cleaned out later
+    this.savedSceneURL = (window.webkitURL || window.URL).createObjectURL(blob);
+
+    const link = window.document.createElement("a");
+    link.href = this.savedSceneURL;
+    link.download = this.savedSceneFilename;
+    const clickEvent = new MouseEvent("click", {
+      view: window,
+      bubbles: true,
+      cancelable: false,
+    });
+    link.dispatchEvent(clickEvent);
+  }
+
+  /**
+   * Loads a scene from a file.
+   */
+  loadScene() {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".babylon";
+
+    fileInput.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+
+      if (file) {
+        const fileURL = URL.createObjectURL(file);
+        console.log(fileURL);
+        SceneLoader.LoadAsync("", fileURL, this.engine, null, ".babylon").then(
+          (scene: Scene) => {
+            if (scene) {
+              scene.activeCamera = this.camera;
+              this.scene?.dispose();
+              this.scene = scene;
+            }
+          }
+        );
+      }
+    };
+
+    fileInput.click();
   }
 
   /**

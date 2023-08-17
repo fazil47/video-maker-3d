@@ -138,6 +138,22 @@ export default function BabylonEditor() {
         {/* MENUBAR */}
         <menu className="w-full h-[35px] rounded-md rounded-t-none flex flex-row gap-4 p-1 justify-start items-center align-middle bg-gray-100 dark:bg-[#242424]">
           <button className="p-1">File</button>
+          <button
+            className="p-1"
+            onClick={() => {
+              app?.saveScene();
+            }}
+          >
+            Save
+          </button>
+          <button
+            className="p-1"
+            onClick={() => {
+              app?.loadScene();
+            }}
+          >
+            Load
+          </button>
           <button className="p-1">Edit</button>
           <button className="p-1">View</button>
           <button className="p-1">Help</button>
