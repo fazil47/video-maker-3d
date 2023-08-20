@@ -189,9 +189,9 @@ export default class App {
         SceneLoader.LoadAsync("", fileURL, this.engine, null, ".babylon").then(
           (scene: Scene) => {
             if (scene) {
-              scene.activeCamera = this.camera;
               this.scene?.dispose();
               this.scene = scene;
+              this.scene.activeCamera = this._createController();
             }
           }
         );
