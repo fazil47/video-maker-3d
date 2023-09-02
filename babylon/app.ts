@@ -28,6 +28,7 @@ import {
   Node,
   Nullable,
   SceneSerializer,
+  Tags,
 } from "@babylonjs/core";
 import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -50,6 +51,7 @@ export type PrimitiveMeshType =
 export default class App {
   engine: WebGPUEngine | Engine | null = null;
   scene: Scene | null = null;
+  invisibleMaterial: StandardMaterial | null = null;
   canvas: HTMLCanvasElement | null = null;
   camera: FreeCamera | null = null;
   gizmoManager: GizmoManager | null = null;
@@ -145,6 +147,8 @@ export default class App {
     }
 
     const serializedScene = SceneSerializer.Serialize(this.scene);
+    // TODO: Save skybox and environment texture
+    delete serializedScene.environmentTexture;
 
     const strMesh = JSON.stringify(serializedScene);
 
@@ -189,9 +193,49 @@ export default class App {
         SceneLoader.LoadAsync("", fileURL, this.engine, null, ".babylon").then(
           (scene: Scene) => {
             if (scene) {
+              // Dispose of everything in the current scene
+              this.scene?.meshes.forEach((mesh) => {
+                mesh.dispose();
+              });
+              this.scene?.materials.forEach((material) => {
+                material.dispose();
+              });
+              this.scene?.textures.forEach((texture) => {
+                texture.dispose();
+              });
+              this.scene?.effectLayers.forEach((effectLayer) => {
+                effectLayer.dispose();
+              });
+              this.sunShadowGenerator?.dispose();
+              this.gizmoManager?.dispose();
+              this.camera?.dispose();
               this.scene?.dispose();
+
+              // Set the new scene
               this.scene = scene;
-              this.scene.activeCamera = this._createController();
+              this._createInvisibleMaterial();
+              this.optimizeScene();
+
+              // Setup camera controls
+              // TODO: Save camera position and rotation
+              this.camera = this._createController();
+              this.scene.activeCamera = this.camera;
+
+              // TODO: Save skybox and environment texture
+              // For now, just recreate the environment
+              const skySun = this.scene.getLightByName("skySun");
+              if (skySun instanceof DirectionalLight) {
+                this._setupSkybox(skySun);
+                this._setupSkySunShadows(skySun);
+              }
+
+              // TODO: Save post-process effects
+              // For now, just recreate the post-process effects
+              this._setupPostProcessEffects(this.camera);
+
+              // Setup gizmo manager
+              this.gizmoManager = this._createGizmoManager();
+              this._setTaggedMeshesAsAttachableToGizmoManager();
             }
           }
         );
@@ -249,8 +293,10 @@ export default class App {
     }
     this.gizmoManager.attachToMesh(mesh);
     this.gizmoManager.attachableMeshes?.push(mesh);
+    Tags.AddTagsTo(mesh, "gizmoAttachableMesh");
 
     this.sunShadowGenerator?.addShadowCaster(mesh);
+    Tags.AddTagsTo(mesh, "shadowCaster");
   }
 
   /**
@@ -283,15 +329,24 @@ export default class App {
             throw new Error("No gizmo manager");
           }
 
+          if (!this.sunShadowGenerator) {
+            throw new Error("No sun shadow generator");
+          }
+
+          if (!this.invisibleMaterial) {
+            throw new Error("No invisible material");
+          }
+
           const boundingBox = new BoundingBox(
             new Vector3(0, 0, 0),
             new Vector3(0, 0, 0)
           );
 
           meshes.forEach((mesh) => {
-            mesh.isPickable = true;
+            mesh.isPickable = false;
             mesh.receiveShadows = true;
             this.sunShadowGenerator?.addShadowCaster(mesh);
+            Tags.AddTagsTo(mesh, "shadowCaster");
 
             // Set base ambient color to white
             if (mesh.material) {
@@ -327,13 +382,21 @@ export default class App {
             },
             this.scene
           );
+          boundingBoxMesh.position = boundingBox.centerWorld;
+          boundingBoxMesh.rotationQuaternion = meshes[0].rotationQuaternion;
+
           // Set the parent of the vehicle to the bounding box mesh
+          // TODO: This doesn't work for every imported mesh
           meshes[0].parent = boundingBoxMesh;
+          meshes[0].position = Vector3.Zero();
+          meshes[0].position.y -= boundingBox.centerWorld.y;
+          meshes[0].rotationQuaternion = Quaternion.Identity();
 
           // Only the bounding box mesh is attachable for the gizmo manager
           this.gizmoManager.attachableMeshes?.push(boundingBoxMesh);
+          Tags.AddTagsTo(boundingBoxMesh, "gizmoAttachableMesh");
           boundingBoxMesh.isPickable = true;
-          boundingBoxMesh.isVisible = false;
+          boundingBoxMesh.material = this.invisibleMaterial;
         });
       }
     };
@@ -382,6 +445,7 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
+    this._createInvisibleMaterial();
     this.optimizeScene();
 
     this.gizmoManager = this._createGizmoManager(onAttachedToObjectCallback);
@@ -413,6 +477,21 @@ export default class App {
   }
 
   /**
+   * Creates the invisible material used for the bounding box meshes.
+   */
+  private _createInvisibleMaterial() {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    this.invisibleMaterial = new StandardMaterial(
+      "invisibleMaterial",
+      this.scene
+    );
+    this.invisibleMaterial.alpha = 0;
+  }
+
+  /**
    * Creates the gizmo manager.
    * @param onAttachedToObjectCallback Callback to be called when the gizmo is attached to a node.
    */
@@ -439,6 +518,25 @@ export default class App {
     }
 
     return gizmoManager;
+  }
+
+  /**
+   * Sets meshes tagged with "gizmoAttachableMesh" as the gizmo manager's attachable meshes.
+   * WARNING: This will overwrite the attachable meshes array.
+   */
+  private _setTaggedMeshesAsAttachableToGizmoManager() {
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    const taggedMeshes = this.scene.getMeshesByTags("gizmoAttachableMesh");
+
+    // Set these meshes as attachable for gizmo manager
+    this.gizmoManager.attachableMeshes = taggedMeshes;
   }
 
   /**
@@ -548,17 +646,12 @@ export default class App {
     );
     skySun.direction = new Vector3(-0.95, -0.28, 0);
     skySun.intensity = 2;
-    skySun.shadowEnabled = true;
-    skySun.autoCalcShadowZBounds = true;
-    const sunShadowGenerator = new ShadowGenerator(1024, skySun);
-    sunShadowGenerator.setDarkness(0);
-    sunShadowGenerator.filter =
-      ShadowGenerator.FILTER_BLURCLOSEEXPONENTIALSHADOWMAP;
-    sunShadowGenerator.transparencyShadow = true;
-    this.sunShadowGenerator = sunShadowGenerator;
 
     // SKYBOX
-    this._setupSkybox(this.scene, skySun);
+    this._setupSkybox(skySun);
+
+    // SHADOWS
+    this._setupSkySunShadows(skySun);
 
     // KENNEY PLAYGROUND
     SceneLoader.ImportMeshAsync(
@@ -569,6 +662,10 @@ export default class App {
     ).then(({ meshes: kenneyPlayground }) => {
       if (!this.gizmoManager) {
         throw new Error("No gizmo manager");
+      }
+
+      if (!this.sunShadowGenerator) {
+        throw new Error("No sun shadow generator");
       }
 
       kenneyPlayground.forEach((mesh) => {
@@ -587,15 +684,12 @@ export default class App {
           }
         }
 
-        sunShadowGenerator.addShadowCaster(mesh);
-      });
+        this.sunShadowGenerator?.addShadowCaster(mesh);
+        Tags.AddTagsTo(mesh, "shadowCaster");
 
-      // Set these meshes as attachable for gizmo manager
-      if (!this.gizmoManager.attachableMeshes) {
-        this.gizmoManager.attachableMeshes = kenneyPlayground.slice(1);
-      } else {
-        this.gizmoManager.attachableMeshes.push(...kenneyPlayground.slice(1));
-      }
+        this.gizmoManager?.attachableMeshes?.push(...kenneyPlayground.slice(1));
+        Tags.AddTagsTo(mesh, "gizmoAttachableMesh");
+      });
     });
 
     // BMW M4
@@ -609,15 +703,24 @@ export default class App {
         throw new Error("No gizmo manager");
       }
 
+      if (!this.sunShadowGenerator) {
+        throw new Error("No sun shadow generator");
+      }
+
+      if (!this.invisibleMaterial) {
+        throw new Error("No invisible material");
+      }
+
       const bmwBoundingBox = new BoundingBox(
         new Vector3(0, 0, 0),
         new Vector3(0, 0, 0)
       );
 
       bmw.forEach((mesh) => {
-        mesh.isPickable = true;
+        mesh.isPickable = false;
         mesh.receiveShadows = true;
-        sunShadowGenerator.addShadowCaster(mesh);
+        this.sunShadowGenerator?.addShadowCaster(mesh);
+        Tags.AddTagsTo(mesh, "shadowCaster");
 
         // Set base ambient color to white
         if (mesh.material) {
@@ -642,11 +745,6 @@ export default class App {
           )
         );
       });
-      bmw[0].position.y += 0.09;
-      bmw[0].rotationQuaternion = Quaternion.RotationAxis(
-        Vector3.Up(),
-        Math.PI / 6
-      );
 
       // Make a transparent bounding box parent mesh for the vehicle
       const bmwBoundingBoxMesh = MeshBuilder.CreateBox(
@@ -658,13 +756,27 @@ export default class App {
         },
         this.scene
       );
+      bmwBoundingBoxMesh.position = bmwBoundingBox.centerWorld;
+      bmwBoundingBoxMesh.rotationQuaternion = bmw[0].rotationQuaternion;
+
       // Set the parent of the vehicle to the bounding box mesh
       bmw[0].parent = bmwBoundingBoxMesh;
+      bmw[0].position = Vector3.Zero();
+      bmw[0].position.y -= bmwBoundingBox.centerWorld.y;
+      bmw[0].rotationQuaternion = Quaternion.Identity();
+
+      // Rotate and raise the BMW slightly
+      bmwBoundingBoxMesh.position.y += 0.09;
+      bmwBoundingBoxMesh.rotationQuaternion = Quaternion.RotationAxis(
+        Vector3.Up(),
+        Math.PI / 6
+      );
 
       // Only the bounding box mesh is attachable for the gizmo manager
       this.gizmoManager.attachableMeshes?.push(bmwBoundingBoxMesh);
+      Tags.AddTagsTo(bmwBoundingBoxMesh, "gizmoAttachableMesh");
       bmwBoundingBoxMesh.isPickable = true;
-      bmwBoundingBoxMesh.isVisible = false;
+      bmwBoundingBoxMesh.material = this.invisibleMaterial;
     });
 
     this._resetSnapshot();
@@ -703,9 +815,13 @@ export default class App {
    * @param scene The Babylon scene.
    * @param skySun The directional light representing the sun.
    */
-  private _setupSkybox(scene: Scene, skySun: DirectionalLight) {
+  private _setupSkybox(skySun: DirectionalLight) {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
     // Create skybox material
-    const skyboxMaterial = new SkyMaterial("skyboxMaterial", scene);
+    const skyboxMaterial = new SkyMaterial("skyboxMaterial", this.scene);
     skyboxMaterial.backFaceCulling = false;
 
     // Set sky material sun position based on skySun direction
@@ -742,7 +858,7 @@ export default class App {
     const skybox = MeshBuilder.CreateSphere(
       "skyBox",
       { diameter: 1000.0 },
-      scene
+      this.scene
     );
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
@@ -750,7 +866,7 @@ export default class App {
     skybox.alwaysSelectAsActiveMesh = true;
 
     // Create a "groundbox", a skybox with an invisible top part, used to render the ground
-    const groundboxMaterial = new GradientMaterial("groundboxMaterial", scene);
+    const groundboxMaterial = new GradientMaterial("groundboxMaterial", this.scene);
     groundboxMaterial.topColor = new Color3(1, 1, 1);
     groundboxMaterial.topColorAlpha = 0;
     groundboxMaterial.bottomColor = new Color3(0.67, 0.56, 0.45);
@@ -764,7 +880,7 @@ export default class App {
     const groundbox = MeshBuilder.CreateSphere(
       "groundbox",
       { diameter: 500 },
-      scene
+      this.scene
     );
     groundbox.layerMask = 0x10000000; // FIXME: Had to do this make the sky visible
     groundbox.position.y = 0;
@@ -774,15 +890,15 @@ export default class App {
     groundbox.alwaysSelectAsActiveMesh = true;
 
     // Create texture from skyMaterial using reflection probe
-    const reflectionProbe = new ReflectionProbe("ref", 64, scene, false);
+    const reflectionProbe = new ReflectionProbe("ref", 64, this.scene, false);
     reflectionProbe.renderList?.push(skybox);
     reflectionProbe.renderList?.push(groundbox);
     reflectionProbe.refreshRate =
       RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES;
 
     // Set environment texture to reflection probe cube texture
-    scene.environmentTexture = reflectionProbe.cubeTexture;
-    scene.environmentIntensity = 2;
+    this.scene.environmentTexture = reflectionProbe.cubeTexture;
+    this.scene.environmentIntensity = 2;
   }
 
   /**
@@ -852,6 +968,46 @@ export default class App {
       // TODO: Doesn't work when toggled with intermediate optimization
       ssr.isEnabled = false;
     }
+  }
+
+  /**
+   * Sets up shadow casting for skySun.
+   * @param skySun The directional light representing the sun.
+   */
+  private _setupSkySunShadows(skySun: DirectionalLight) {
+    skySun.shadowEnabled = true;
+    skySun.autoCalcShadowZBounds = true;
+    const sunShadowGenerator = new ShadowGenerator(1024, skySun);
+    sunShadowGenerator.setDarkness(0);
+    sunShadowGenerator.filter =
+      ShadowGenerator.FILTER_BLURCLOSEEXPONENTIALSHADOWMAP;
+    sunShadowGenerator.transparencyShadow = true;
+    this.sunShadowGenerator = sunShadowGenerator;
+
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    // Add shadow casters to sunShadowGenerator
+    this._addTaggedMeshesAsShadowCasters();
+  }
+
+  /**
+   * Adds meshes tagged with "shadowCaster" to the sun shadow generator.
+   */
+  private _addTaggedMeshesAsShadowCasters() {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    if (!this.sunShadowGenerator) {
+      throw new Error("No sun shadow generator");
+    }
+
+    const shadowCasters = this.scene.getMeshesByTags("shadowCaster");
+    shadowCasters.forEach((mesh) => {
+      this.sunShadowGenerator?.addShadowCaster(mesh);
+    });
   }
 
   /**
