@@ -135,6 +135,56 @@ export default class App {
   }
 
   /**
+   * Attaches the gizmo manager to the given node.
+   * @param node The node to attach the gizmo manager to.
+   */
+  selectNode(node: Node) {
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+
+    if (node instanceof Mesh) {
+      console.log(`Gizmo manager attached to mesh ${node.name}`);
+      this.gizmoManager.attachToMesh(node);
+    } else {
+      console.log(`Gizmo manager attached to node ${node.name}`);
+      this.gizmoManager.attachToNode(node);
+    }
+  }
+
+  /**
+   * Deletes the selected node.
+   */
+  public deleteSelectedNode() {
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    let selectedMesh = this.gizmoManager.gizmos.positionGizmo?.attachedMesh;
+    if (selectedMesh) {
+      this.gizmoManager.attachToMesh(null);
+      this.gizmoManager.attachableMeshes?.splice(
+        this.gizmoManager.attachableMeshes.indexOf(selectedMesh),
+        1
+      );
+      selectedMesh.dispose();
+    }
+
+    let selectedNode = this.gizmoManager.gizmos.positionGizmo?.attachedNode;
+    if (selectedNode) {
+      this.gizmoManager.attachToNode(null);
+      this.gizmoManager.attachableNodes?.splice(
+        this.gizmoManager.attachableNodes.indexOf(selectedNode),
+        1
+      );
+      selectedNode.dispose();
+    }
+  }
+
+  /**
    * Serializes the scene and saves it to a file.
    */
   saveScene() {
@@ -235,6 +285,7 @@ export default class App {
 
               // Setup gizmo manager
               this.gizmoManager = this._createGizmoManager();
+              this._setTaggedNodesAsAttachableToGizmoManager();
               this._setTaggedMeshesAsAttachableToGizmoManager();
             }
           }
@@ -405,28 +456,6 @@ export default class App {
   }
 
   /**
-   * Deletes the selected node.
-   */
-  public deleteSelectedNode() {
-    if (!this.gizmoManager) {
-      throw new Error("No gizmo manager");
-    }
-    if (!this.scene) {
-      throw new Error("No scene");
-    }
-
-    let selectedMesh = this.gizmoManager.gizmos.positionGizmo?.attachedMesh;
-    if (selectedMesh) {
-      this.gizmoManager.attachToMesh(null);
-      this.gizmoManager.attachableMeshes?.splice(
-        this.gizmoManager.attachableMeshes.indexOf(selectedMesh),
-        1
-      );
-      selectedMesh.dispose();
-    }
-  }
-
-  /**
    * Initializes the babylon engine and scene asynchronously.
    * @param canvas The canvas to render to.
    * @param onAttachedToObjectCallback Callback to be called when a mesh is selected.
@@ -445,10 +474,10 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
+    this.gizmoManager = this._createGizmoManager(onAttachedToObjectCallback);
     this._createInvisibleMaterial();
     this.optimizeScene();
 
-    this.gizmoManager = this._createGizmoManager(onAttachedToObjectCallback);
     this.camera = this._createController();
     this._createEnvironment();
 
@@ -540,12 +569,35 @@ export default class App {
   }
 
   /**
+   * Sets nodes tagged with "gizmoAttachableNode" as the gizmo manager's attachable nodes.
+   * WARNING: This will overwrite the attachable nodes array.
+   */
+  private _setTaggedNodesAsAttachableToGizmoManager() {
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    const taggedNodes = this.scene.getMeshesByTags("gizmoAttachableNode");
+
+    // Set these meshes as attachable for gizmo manager
+    this.gizmoManager.attachableNodes = taggedNodes;
+  }
+
+  /**
    * Creates a FreeCamera and sets up controls and the collider.
    * @returns The created FreeCamera.
    */
   private _createController(): FreeCamera {
     if (!this.scene) {
       throw new Error("No scene");
+    }
+
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
     }
 
     const camera = new FreeCamera(
@@ -555,6 +607,10 @@ export default class App {
     );
     camera.setTarget(Vector3.Zero());
     camera.attachControl(this.canvas, true);
+
+    // Set camera as attachable for gizmo manager
+    this.gizmoManager.attachableNodes?.push(camera);
+    Tags.AddTagsTo(camera, "gizmoAttachableNode");
 
     camera.applyGravity = false;
     camera.checkCollisions = false;
@@ -628,6 +684,10 @@ export default class App {
       throw new Error("No camera");
     }
 
+    if (!this.gizmoManager) {
+      throw new Error("No gizmo manager");
+    }
+
     this.scene.shadowsEnabled = true;
     this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
     this.scene.imageProcessingConfiguration.toneMappingType =
@@ -646,6 +706,9 @@ export default class App {
     );
     skySun.direction = new Vector3(-0.95, -0.28, 0);
     skySun.intensity = 2;
+    // Set sun light as attachable for gizmo manager
+    this.gizmoManager.attachableNodes?.push(skySun);
+    Tags.AddTagsTo(skySun, "gizmoAttachableNode");
 
     // SKYBOX
     this._setupSkybox(skySun);
@@ -866,7 +929,10 @@ export default class App {
     skybox.alwaysSelectAsActiveMesh = true;
 
     // Create a "groundbox", a skybox with an invisible top part, used to render the ground
-    const groundboxMaterial = new GradientMaterial("groundboxMaterial", this.scene);
+    const groundboxMaterial = new GradientMaterial(
+      "groundboxMaterial",
+      this.scene
+    );
     groundboxMaterial.topColor = new Color3(1, 1, 1);
     groundboxMaterial.topColorAlpha = 0;
     groundboxMaterial.bottomColor = new Color3(0.67, 0.56, 0.45);

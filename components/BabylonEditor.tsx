@@ -137,7 +137,14 @@ export default function BabylonEditor() {
       >
         {/* MENUBAR */}
         <menu className="w-full h-[35px] rounded-md rounded-t-none flex flex-row gap-4 p-1 justify-start items-center align-middle bg-gray-100 dark:bg-[#242424]">
-          <button className="p-1">File</button>
+          <button
+            className="p-1"
+            onClick={() => {
+              alert("Not implemented yet");
+            }}
+          >
+            File
+          </button>
           <button
             className="p-1"
             onClick={() => {
@@ -154,9 +161,30 @@ export default function BabylonEditor() {
           >
             Load
           </button>
-          <button className="p-1">Edit</button>
-          <button className="p-1">View</button>
-          <button className="p-1">Help</button>
+          <button
+            className="p-1"
+            onClick={() => {
+              alert("Not implemented yet");
+            }}
+          >
+            Edit
+          </button>
+          <button
+            className="p-1"
+            onClick={() => {
+              alert("Not implemented yet");
+            }}
+          >
+            View
+          </button>
+          <button
+            className="p-1"
+            onClick={() => {
+              alert("Not implemented yet");
+            }}
+          >
+            Help
+          </button>
         </menu>
         {/* PANELS */}
         <div className="overflow-hidden w-full flex-grow flex flex-row gap-1 justify-center items-center align-middle">
@@ -177,18 +205,19 @@ export default function BabylonEditor() {
               <div className="overflow-hidden flex-grow w-full flex flex-col items-center gap-2">
                 <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#2c2c2c]">
                   <ul>
-                    <li>Object 1</li>
-                    <li>Object 2</li>
-                    <li>Object 3</li>
-                    <li>Object 4</li>
-                    <li>Object 5</li>
-                    <li>Object 6</li>
-                    <li>Object 7</li>
-                    <li>Object 8</li>
-                    <li>Object 9</li>
-                    <li>Object 10</li>
-                    <li>Object 11</li>
-                    <li>Object 12</li>
+                    {app?.scene?.rootNodes.map((node, i) => {
+                      return (
+                        <li
+                          key={i}
+                          onClick={() => {
+                            app.selectNode(node);
+                          }}
+                          className="cursor-pointer hover:bg-gray-300 hover:dark:bg-[#3a3a3a] rounded-md p-1"
+                        >
+                          {node.name}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
                 <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#2c2c2c]">
@@ -653,10 +682,20 @@ export default function BabylonEditor() {
         </div>
         {/* BOTTOM BAR */}
         <div className="w-full h-[40px] rounded-md rounded-b-none flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#242424]">
-          <button className="py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md">
+          <button
+            onClick={() => {
+              alert("Not implemented yet");
+            }}
+            className="py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md"
+          >
             Board
           </button>
-          <button className="py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md">
+          <button
+            onClick={() => {
+              alert("Not implemented yet");
+            }}
+            className="py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md"
+          >
             Files
           </button>
           <input
