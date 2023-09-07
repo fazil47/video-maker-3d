@@ -9,12 +9,12 @@
     "lint": "next lint"
   },
   "devDependencies": {
-    "@babylonjs/inspector": "^6.19.1"
+    "@babylonjs/inspector": "^6.20.0"
   },
   "dependencies": {
-    "@babylonjs/core": "^6.19.1",
-    "@babylonjs/loaders": "^6.19.1",
-    "@babylonjs/materials": "^6.19.1",
+    "@babylonjs/core": "^6.20.0",
+    "@babylonjs/loaders": "^6.20.0",
+    "@babylonjs/materials": "^6.20.0",
     "@types/node": "^20.5.9",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
