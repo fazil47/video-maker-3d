@@ -51,6 +51,15 @@ export default function BabylonEditor() {
   const panelVisibility = useEditorStore((state) => state.panelVisibility);
   const sceneSettings = useEditorStore((state) => state.sceneSettings);
 
+  const onSceneSettingsChangedCallback = (sceneSettings: SceneSettings) => {
+    useEditorStore.setState((state) => ({
+      sceneSettings: {
+        ...state.sceneSettings,
+        ...sceneSettings,
+      },
+    }));
+  };
+
   // Resize render canvas to fit parent container
   const resizeRenderCanvas = () => {
     if (renderCanvas.current) {
@@ -107,6 +116,7 @@ export default function BabylonEditor() {
           setScene(scene);
           setLoaded(true);
         },
+        onSceneSettingsChangedCallback,
         (obj) => setSelectedObject(obj)
       );
       setApp(app);

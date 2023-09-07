@@ -29,6 +29,8 @@ import {
   Nullable,
   SceneSerializer,
   Tags,
+  UtilityLayerRenderer,
+  LightGizmo,
 } from "@babylonjs/core";
 import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -55,6 +57,9 @@ export default class App {
   canvas: HTMLCanvasElement | null = null;
   camera: FreeCamera | null = null;
   gizmoManager: GizmoManager | null = null;
+  utilityLayerRenderer: UtilityLayerRenderer | null = null;
+  skySunGizmo: LightGizmo | null = null;
+  skyboxMaterial: SkyMaterial | null = null;
   sunShadowGenerator: ShadowGenerator | null = null;
   sceneSettings: SceneSettings = {
     transformGizmoMode: "position",
@@ -62,6 +67,7 @@ export default class App {
   };
   savedSceneURL: string | null = null;
   savedSceneFilename: string = "scene"; // TODO: This has to be changed for to support multi-scene projects
+  onSceneSettingsChanged: (sceneSettings: SceneSettings) => void = () => {};
 
   /**
    * This function initializes the engine and scene asynchronously.
@@ -72,6 +78,7 @@ export default class App {
   constructor(
     canvas: HTMLCanvasElement,
     onInitialized: (engine: Engine | WebGPUEngine, scene: Scene) => void,
+    onSceneSettingsChanged: (sceneSettings: SceneSettings) => void,
     onAttachedToObjectCallback?: (node: Nullable<Node>) => void
   ) {
     // Using a separate initialize function because the constructor cannot be async
@@ -79,6 +86,7 @@ export default class App {
       if (!this.engine || !this.scene) {
         throw new Error("No engine or scene");
       }
+      this.onSceneSettingsChanged = onSceneSettingsChanged;
       onInitialized(this.engine, this.scene);
     });
   }
@@ -143,12 +151,34 @@ export default class App {
       throw new Error("No gizmo manager");
     }
 
-    if (node instanceof Mesh) {
-      console.log(`Gizmo manager attached to mesh ${node.name}`);
-      this.gizmoManager.attachToMesh(node);
+    // TODO: Should handle all lights like this
+    if (node === this.skySunGizmo?.light) {
+      this.gizmoManager.attachToMesh(this.skySunGizmo.attachedMesh);
+
+      const onPointerMove = (_: PointerEvent) => {
+        this._updateSkybox();
+      };
+
+      this.gizmoManager.rotationGizmoEnabled = true;
+      this.gizmoManager.positionGizmoEnabled = false;
+      this.gizmoManager.scaleGizmoEnabled = false;
+      this.sceneSettings.transformGizmoMode = "rotation";
+      this.onSceneSettingsChanged?.(this.sceneSettings);
+
+      this.gizmoManager.gizmos.rotationGizmo?.onDragStartObservable.add(() => {
+        this._updateSkybox();
+        document.addEventListener("pointermove", onPointerMove);
+      });
+      this.gizmoManager.gizmos.rotationGizmo?.onDragEndObservable.add(() => {
+        document.removeEventListener("pointermove", onPointerMove);
+        this._updateSkybox();
+      });
     } else {
-      console.log(`Gizmo manager attached to node ${node.name}`);
-      this.gizmoManager.attachToNode(node);
+      if (node instanceof Mesh) {
+        this.gizmoManager.attachToMesh(node);
+      } else {
+        this.gizmoManager.attachToNode(node);
+      }
     }
   }
 
@@ -266,6 +296,12 @@ export default class App {
               this._createInvisibleMaterial();
               this.optimizeScene();
 
+              // Setup gizmo manager
+              [this.gizmoManager, this.utilityLayerRenderer] =
+                this._createGizmoManager();
+              this._setTaggedNodesAsAttachableToGizmoManager();
+              this._setTaggedMeshesAsAttachableToGizmoManager();
+
               // Setup camera controls
               // TODO: Save camera position and rotation
               this.camera = this._createController();
@@ -274,19 +310,21 @@ export default class App {
               // TODO: Save skybox and environment texture
               // For now, just recreate the environment
               const skySun = this.scene.getLightByName("skySun");
+              this.skySunGizmo = new LightGizmo(this.utilityLayerRenderer);
+              // TODO: same as in _createEnvironment
+              try {
+                this.skySunGizmo.light = skySun;
+              } catch (e) {
+                console.log(e);
+              }
               if (skySun instanceof DirectionalLight) {
-                this._setupSkybox(skySun);
+                this._setupSkybox();
                 this._setupSkySunShadows(skySun);
               }
 
               // TODO: Save post-process effects
               // For now, just recreate the post-process effects
               this._setupPostProcessEffects(this.camera);
-
-              // Setup gizmo manager
-              this.gizmoManager = this._createGizmoManager();
-              this._setTaggedNodesAsAttachableToGizmoManager();
-              this._setTaggedMeshesAsAttachableToGizmoManager();
             }
           }
         );
@@ -474,7 +512,9 @@ export default class App {
     }
 
     this.scene = new Scene(this.engine);
-    this.gizmoManager = this._createGizmoManager(onAttachedToObjectCallback);
+    [this.gizmoManager, this.utilityLayerRenderer] = this._createGizmoManager(
+      onAttachedToObjectCallback
+    );
     this._createInvisibleMaterial();
     this.optimizeScene();
 
@@ -521,18 +561,21 @@ export default class App {
   }
 
   /**
-   * Creates the gizmo manager.
+   * Creates the gizmo manager and utilityLayerRenderer.
    * @param onAttachedToObjectCallback Callback to be called when the gizmo is attached to a node.
    */
   private _createGizmoManager(
     onAttachedToObjectCallback?: (node: Nullable<Node>) => void
-  ): GizmoManager {
+  ): [GizmoManager, UtilityLayerRenderer] {
     if (!this.scene) {
       throw new Error("No scene");
     }
 
+    // TODO: Not sure about this, should I return this as well and set the property explicitly along with this.gizmoManager?
+    const utilityLayerRenderer = new UtilityLayerRenderer(this.scene);
+
     // Create and setup GizmoManager
-    const gizmoManager = new GizmoManager(this.scene);
+    const gizmoManager = new GizmoManager(this.scene, 1, utilityLayerRenderer);
     gizmoManager.clearGizmoOnEmptyPointerEvent = true;
     gizmoManager.attachableMeshes = [];
     gizmoManager.attachableNodes = [];
@@ -546,7 +589,7 @@ export default class App {
       gizmoManager.onAttachedToMeshObservable.add(onAttachedToObjectCallback);
     }
 
-    return gizmoManager;
+    return [gizmoManager, utilityLayerRenderer];
   }
 
   /**
@@ -688,6 +731,10 @@ export default class App {
       throw new Error("No gizmo manager");
     }
 
+    if (!this.utilityLayerRenderer) {
+      throw new Error("No utility layer renderer");
+    }
+
     this.scene.shadowsEnabled = true;
     this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
     this.scene.imageProcessingConfiguration.toneMappingType =
@@ -706,12 +753,23 @@ export default class App {
     );
     skySun.direction = new Vector3(-0.95, -0.28, 0);
     skySun.intensity = 2;
-    // Set sun light as attachable for gizmo manager
-    this.gizmoManager.attachableNodes?.push(skySun);
-    Tags.AddTagsTo(skySun, "gizmoAttachableNode");
+    // Add gizmo to sun light and add that as attachable for gizmo manager
+    this.skySunGizmo = new LightGizmo(this.utilityLayerRenderer);
+    if (this.skySunGizmo.attachedMesh) {
+      // TODO: Should I include this in the serialized scene?
+      // this.gizmoManager.attachableMeshes?.push(this.skySunGizmo.attachedMesh);
+      // Tags.AddTagsTo(this.skySunGizmo.attachedMesh, "gizmoAttachableMesh");
+    }
+    // For some reason, this throws an exception but still works
+    // TODO: something not loading in time?
+    try {
+      this.skySunGizmo.light = skySun;
+    } catch (e) {
+      console.log(e);
+    }
 
     // SKYBOX
-    this._setupSkybox(skySun);
+    this._setupSkybox();
 
     // SHADOWS
     this._setupSkySunShadows(skySun);
@@ -874,22 +932,56 @@ export default class App {
   }
 
   /**
-   * Sets up the skybox and environmental lighting.
-   * @param scene The Babylon scene.
-   * @param skySun The directional light representing the sun.
+   * Updates the skybox based on skySun
    */
-  private _setupSkybox(skySun: DirectionalLight) {
+  private _updateSkybox() {
     if (!this.scene) {
       throw new Error("No scene");
     }
 
+    if (!this.skySunGizmo?.light) {
+      throw new Error("No sky sun light");
+    }
+
+    if (!this.skyboxMaterial) {
+      throw new Error("No skybox material");
+    }
+
+    const skySun = this.skySunGizmo.light as DirectionalLight;
+
+    // Unfreeze materials and enable autoClear to modify sky material and ambient light
+    this.unoptimizeScene();
+
+    this.skyboxMaterial.sunPosition = skySun.direction.scale(-1);
+
+    // Set sun color based on sun position
+    const sunColor = this._getSunColor(-skySun.direction.y);
+    skySun.diffuse = sunColor;
+
+    this.optimizeScene();
+  }
+
+  /**
+   * Sets up the skybox and environmental lighting.
+   */
+  private _setupSkybox() {
+    if (!this.scene) {
+      throw new Error("No scene");
+    }
+
+    if (!this.skySunGizmo?.light) {
+      throw new Error("No sky sun light");
+    }
+
+    const skySun = this.skySunGizmo.light as DirectionalLight;
+
     // Create skybox material
-    const skyboxMaterial = new SkyMaterial("skyboxMaterial", this.scene);
-    skyboxMaterial.backFaceCulling = false;
+    this.skyboxMaterial = new SkyMaterial("skyboxMaterial", this.scene);
+    this.skyboxMaterial.backFaceCulling = false;
 
     // Set sky material sun position based on skySun direction
-    skyboxMaterial.useSunPosition = true;
-    skyboxMaterial.sunPosition = skySun.direction.scale(-1);
+    this.skyboxMaterial.useSunPosition = true;
+    this.skyboxMaterial.sunPosition = skySun.direction.scale(-1);
 
     // Visualization of environment effect by updating skySun direction and skyMaterial sun position every frame
     let quaternionDelta = 0.02;
@@ -898,24 +990,28 @@ export default class App {
         throw new Error("No scene");
       }
 
+      if (!this.skyboxMaterial) {
+        throw new Error("No skybox material");
+      }
+
       if (skySun.direction.y <= 0) {
         if (event.key === "1") {
-          this._rotateSun(skySun, skyboxMaterial, quaternionDelta);
+          this._rotateSun(quaternionDelta);
         } else if (event.key === "2") {
-          this._rotateSun(skySun, skyboxMaterial, -quaternionDelta);
+          this._rotateSun(-quaternionDelta);
         }
       } else {
         skySun.direction.y = 0;
       }
     });
 
-    skyboxMaterial.luminance = 0.4;
-    skyboxMaterial.turbidity = 10;
-    skyboxMaterial.rayleigh = 4;
-    skyboxMaterial.mieCoefficient = 0.005;
-    skyboxMaterial.mieDirectionalG = 0.98;
-    skyboxMaterial.cameraOffset.y = 200;
-    skyboxMaterial.disableDepthWrite = false;
+    this.skyboxMaterial.luminance = 0.4;
+    this.skyboxMaterial.turbidity = 10;
+    this.skyboxMaterial.rayleigh = 4;
+    this.skyboxMaterial.mieCoefficient = 0.005;
+    this.skyboxMaterial.mieDirectionalG = 0.98;
+    this.skyboxMaterial.cameraOffset.y = 200;
+    this.skyboxMaterial.disableDepthWrite = false;
 
     // Create skybox mesh
     const skybox = MeshBuilder.CreateSphere(
@@ -923,7 +1019,7 @@ export default class App {
       { diameter: 1000.0 },
       this.scene
     );
-    skybox.material = skyboxMaterial;
+    skybox.material = this.skyboxMaterial;
     skybox.infiniteDistance = true;
     skybox.isPickable = false;
     skybox.alwaysSelectAsActiveMesh = true;
@@ -959,6 +1055,7 @@ export default class App {
     const reflectionProbe = new ReflectionProbe("ref", 64, this.scene, false);
     reflectionProbe.renderList?.push(skybox);
     reflectionProbe.renderList?.push(groundbox);
+    // TODO: Maybe only update manually when sun changes?
     reflectionProbe.refreshRate =
       RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES;
 
@@ -1078,30 +1175,33 @@ export default class App {
 
   /**
    * Rotates the sun and updates the sky material and ambient light based on the new sun position.
-   * @param skySun The directional light representing the sun.
-   * @param skyMaterial The sky material.
    * @param angle The angle to rotate the sun by.
    */
-  private _rotateSun(
-    skySun: DirectionalLight,
-    skyMaterial: SkyMaterial,
-    angle: number
-  ) {
+  private _rotateSun(angle: number) {
     if (!this.scene) {
       throw new Error("No scene");
     }
 
+    if (!this.skySunGizmo?.light) {
+      throw new Error("No sky sun light");
+    }
+
+    if (!this.skyboxMaterial) {
+      throw new Error("No skybox material");
+    }
+
+    const skySun = this.skySunGizmo.light as DirectionalLight;
+
     // skySun.direction.y goes from 0 at sunrise and sunset to -1 at noon
 
     // Unfreeze materials and enable autoClear to modify sky material and ambient light
-    this.scene.unfreezeMaterials();
-    this.scene.autoClear = true;
+    this.unoptimizeScene();
 
     // Rotate sun around the y axis and set sun position to the inverse of the direction
     skySun.direction.applyRotationQuaternionInPlace(
       Quaternion.RotationAxis(Vector3.Forward(), angle)
     );
-    skyMaterial.sunPosition = skySun.direction.scale(-1);
+    this.skyboxMaterial.sunPosition = skySun.direction.scale(-1);
 
     // Set sun color based on sun position
     const sunColor = this._getSunColor(-skySun.direction.y);
@@ -1115,14 +1215,7 @@ export default class App {
     //   this.scene.ambientColor = new Color3(0.5, 0.5, 0.5);
     // }
 
-    // Freeze materials and disable autoClear if scene performance priority is not set to compatibility mode
-    if (
-      this.scene.performancePriority !==
-      ScenePerformancePriority.BackwardCompatible
-    ) {
-      this.scene.freezeMaterials();
-      this.scene.autoClear = false;
-    }
+    this.optimizeScene();
   }
 
   /**
