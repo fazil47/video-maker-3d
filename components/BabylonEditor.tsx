@@ -198,9 +198,13 @@ export default function BabylonEditor() {
         </menu>
         {/* PANELS */}
         <div className="overflow-hidden w-full flex-grow flex flex-row gap-1 justify-center items-center align-middle">
-          {/* <div className="p-2 flex flex-col items-center rounded-md bg-gray-200 dark:bg-black">
-            <p className="text-3xl font-bold">Story Board</p>
-          </div> */}
+          {panelVisibility.storyBoard ? (
+            <div className="h-full overflow-hidden min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
+              <div className="p-1 w-full text-center text-xl font-bold rounded-md rounded-b-none">
+                Story Board
+              </div>
+            </div>
+          ) : null}
           <div className="h-full flex-grow rounded-md">
             <canvas
               ref={renderCanvas}
@@ -693,10 +697,17 @@ export default function BabylonEditor() {
         {/* BOTTOM BAR */}
         <div className="w-full h-[40px] rounded-md rounded-b-none flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#242424]">
           <button
-            onClick={() => {
-              alert("Not implemented yet");
+            onClick={(_ev) => {
+              useEditorStore.setState((state) => ({
+                panelVisibility: {
+                  ...state.panelVisibility,
+                  storyBoard: !state.panelVisibility.storyBoard,
+                },
+              }));
             }}
-            className="py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md"
+            className={`py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md ${
+              panelVisibility.storyBoard ? "bg-gray-200 dark:bg-[#303030]" : ""
+            }`}
           >
             Board
           </button>
