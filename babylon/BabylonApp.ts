@@ -31,6 +31,7 @@ import {
   Tags,
   UtilityLayerRenderer,
   LightGizmo,
+  Animation,
 } from "@babylonjs/core";
 import { GradientMaterial, SkyMaterial } from "@babylonjs/materials";
 import { Inspector } from "@babylonjs/inspector";
@@ -61,13 +62,66 @@ export default class BabylonApp {
   skySunGizmo: LightGizmo | null = null;
   skyboxMaterial: SkyMaterial | null = null;
   sunShadowGenerator: ShadowGenerator | null = null;
+  animatedNodes: Node[] = [];
+  keyframes: number[] = [];
+  frameRate: number = 60;
+  defaultKeyframeGap: number = 10;
+  savedSceneURL: string | null = null;
+  savedSceneFilename: string = "scene"; // TODO: This has to be changed for to support multi-scene projects
   sceneSettings: SceneSettings = {
     transformGizmoMode: "position",
     newPrimitiveMeshType: "box",
   };
-  savedSceneURL: string | null = null;
-  savedSceneFilename: string = "scene"; // TODO: This has to be changed for to support multi-scene projects
   onSceneSettingsChanged: (sceneSettings: SceneSettings) => void = () => {};
+
+  // TODO: Group animations together
+  tempPlayAnimations() {
+    this.animatedNodes.forEach((animatedNode) => {
+      if (!this.scene) {
+        throw new Error("No scene");
+      }
+      if (this.keyframes.length === 0) {
+        console.error("No keyframes, this shouldn't have happened");
+      } else {
+        this.scene.beginAnimation(
+          animatedNode,
+          this.keyframes.at(0) as number,
+          this.keyframes.at(-1) as number,
+          false
+        );
+      }
+    });
+  }
+
+  /**
+   * Adds a new keyframe to all animated nodes.
+   * @param timeAfterLastKeyframe The time after the last keyframe to add the new keyframe. Ignored if it's the first keyframe.
+   */
+  addKeyframe(timeAfterLastKeyframe: number = this.defaultKeyframeGap) {
+    if (this.keyframes.length !== 0) {
+      this.keyframes.push(
+        (this.keyframes.at(-1) as number) + timeAfterLastKeyframe
+      );
+    } else {
+      this.keyframes.push(0);
+    }
+
+    // TODO: Null check target properties?
+    this.animatedNodes.forEach((animatedNode) => {
+      animatedNode.animations.forEach((animation) => {
+        animation.setKeys([
+          ...animation.getKeys(),
+          {
+            frame: this.keyframes.at(-1) as number,
+            value: Object.assign(
+              {},
+              (animatedNode as any)[animation.targetProperty]
+            ),
+          },
+        ]);
+      });
+    });
+  }
 
   /**
    * This function initializes the engine and scene asynchronously.
@@ -372,6 +426,35 @@ export default class BabylonApp {
         throw new Error("Invalid mesh type");
     }
 
+    const meshPositionAnim = new Animation(
+      `${mesh.name}_position`,
+      "position",
+      this.frameRate,
+      Animation.ANIMATIONTYPE_VECTOR3
+    );
+    const meshRotationAnim = new Animation(
+      `${mesh.name}_rotation`,
+      "rotationQuaternion",
+      this.frameRate,
+      Animation.ANIMATIONTYPE_QUATERNION
+    );
+    const meshScalingAnim = new Animation(
+      `${mesh.name}_scaling`,
+      "scaling",
+      this.frameRate,
+      Animation.ANIMATIONTYPE_VECTOR3
+    );
+
+    // Add to animatedNodes
+
+    // TODO: How do I handle this?
+    meshPositionAnim.setKeys([]);
+    meshRotationAnim.setKeys([]);
+    meshScalingAnim.setKeys([]);
+
+    mesh.animations = [meshPositionAnim, meshRotationAnim, meshScalingAnim];
+    this.animatedNodes.push(mesh);
+
     mesh.isPickable = true;
     mesh.checkCollisions = true;
     mesh.receiveShadows = true;
@@ -486,6 +569,39 @@ export default class BabylonApp {
           Tags.AddTagsTo(boundingBoxMesh, "gizmoAttachableMesh");
           boundingBoxMesh.isPickable = true;
           boundingBoxMesh.material = this.invisibleMaterial;
+
+          // Add to animatedNodes
+
+          const meshPositionAnim = new Animation(
+            `${meshes[0].name}_position`,
+            "position",
+            this.frameRate,
+            Animation.ANIMATIONTYPE_VECTOR3
+          );
+          const meshRotationAnim = new Animation(
+            `${meshes[0].name}_rotation`,
+            "rotationQuaternion",
+            this.frameRate,
+            Animation.ANIMATIONTYPE_QUATERNION
+          );
+          const meshScalingAnim = new Animation(
+            `${meshes[0].name}_scaling`,
+            "scaling",
+            this.frameRate,
+            Animation.ANIMATIONTYPE_VECTOR3
+          );
+
+          // TODO: How do I handle this?
+          meshPositionAnim.setKeys([]);
+          meshRotationAnim.setKeys([]);
+          meshScalingAnim.setKeys([]);
+
+          boundingBoxMesh.animations = [
+            meshPositionAnim,
+            meshRotationAnim,
+            meshScalingAnim,
+          ];
+          this.animatedNodes.push(boundingBoxMesh);
         });
       }
     };
@@ -790,6 +906,34 @@ export default class BabylonApp {
       }
 
       kenneyPlayground.forEach((mesh) => {
+        // Add to animatedNodes
+
+        const meshPositionAnim = new Animation(
+          `${mesh.name}_position`,
+          "position",
+          this.frameRate,
+          Animation.ANIMATIONTYPE_VECTOR3
+        );
+        const meshRotationAnim = new Animation(
+          `${mesh.name}_rotation`,
+          "rotationQuaternion",
+          this.frameRate,
+          Animation.ANIMATIONTYPE_QUATERNION
+        );
+        const meshScalingAnim = new Animation(
+          `${mesh.name}_scaling`,
+          "scaling",
+          this.frameRate,
+          Animation.ANIMATIONTYPE_VECTOR3
+        );
+
+        meshPositionAnim.setKeys([]);
+        meshRotationAnim.setKeys([]);
+        meshScalingAnim.setKeys([]);
+
+        mesh.animations = [meshPositionAnim, meshRotationAnim, meshScalingAnim];
+        this.animatedNodes.push(mesh);
+
         mesh.isPickable = true;
         mesh.checkCollisions = true;
         mesh.receiveShadows = true;
@@ -898,6 +1042,38 @@ export default class BabylonApp {
       Tags.AddTagsTo(bmwBoundingBoxMesh, "gizmoAttachableMesh");
       bmwBoundingBoxMesh.isPickable = true;
       bmwBoundingBoxMesh.material = this.invisibleMaterial;
+
+      // Add to animatedNodes
+
+      const meshPositionAnim = new Animation(
+        `bmw_position`,
+        "position",
+        this.frameRate,
+        Animation.ANIMATIONTYPE_VECTOR3
+      );
+      const meshRotationAnim = new Animation(
+        `bmw_rotation`,
+        "rotationQuaternion",
+        this.frameRate,
+        Animation.ANIMATIONTYPE_QUATERNION
+      );
+      const meshScalingAnim = new Animation(
+        `bmw_scaling`,
+        "scaling",
+        this.frameRate,
+        Animation.ANIMATIONTYPE_VECTOR3
+      );
+
+      meshPositionAnim.setKeys([]);
+      meshRotationAnim.setKeys([]);
+      meshScalingAnim.setKeys([]);
+
+      bmwBoundingBoxMesh.animations = [
+        meshPositionAnim,
+        meshRotationAnim,
+        meshScalingAnim,
+      ];
+      this.animatedNodes.push(bmwBoundingBoxMesh);
     });
 
     this._resetSnapshot();

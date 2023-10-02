@@ -214,6 +214,14 @@ export default function BabylonEditor() {
               <div className="p-1 w-full text-center text-xl font-bold rounded-md rounded-b-none">
                 Story Board
               </div>
+              <button
+                className="p-1 w-full text-center font-bold rounded-md rounded-b-none"
+                onClick={() => {
+                  app?.tempPlayAnimations();
+                }}
+              >
+                Play
+              </button>
               <div className="flex flex-col gap-3 overflow-y-scroll w-full h-full items-center p-1 pb-3">
                 {storyBoardSettings.boards.map((board, index) => (
                   <div
@@ -240,6 +248,8 @@ export default function BabylonEditor() {
                         boards: [...state.storyBoardSettings.boards, {}],
                       },
                     }));
+
+                    app?.addKeyframe();
                   }}
                 >
                   +
