@@ -26,6 +26,10 @@ interface EditorState {
     inspector: boolean;
   };
   sceneSettings: SceneSettings;
+  storyBoardSettings: {
+    currentBoardIndex: number;
+    boards: {}[];
+  };
 }
 
 const useEditorStore = create<EditorState>((set) => ({
@@ -36,6 +40,10 @@ const useEditorStore = create<EditorState>((set) => ({
   sceneSettings: {
     transformGizmoMode: "position",
     newPrimitiveMeshType: "box",
+  },
+  storyBoardSettings: {
+    currentBoardIndex: 0,
+    boards: [],
   },
 }));
 
@@ -50,6 +58,9 @@ export default function BabylonEditor() {
 
   const panelVisibility = useEditorStore((state) => state.panelVisibility);
   const sceneSettings = useEditorStore((state) => state.sceneSettings);
+  const storyBoardSettings = useEditorStore(
+    (state) => state.storyBoardSettings
+  );
 
   const onSceneSettingsChangedCallback = (sceneSettings: SceneSettings) => {
     useEditorStore.setState((state) => ({
@@ -202,6 +213,37 @@ export default function BabylonEditor() {
             <div className="h-full overflow-hidden min-w-[200px] flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
               <div className="p-1 w-full text-center text-xl font-bold rounded-md rounded-b-none">
                 Story Board
+              </div>
+              <div className="flex flex-col gap-3 overflow-y-scroll w-full h-full items-center p-1 pb-3">
+                {storyBoardSettings.boards.map((board, index) => (
+                  <div
+                    key={index}
+                    className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-gray-200 dark:bg-[#2c2c2c] rounded-md"
+                    onClick={() => {
+                      useEditorStore.setState((state) => ({
+                        storyBoardSettings: {
+                          ...state.storyBoardSettings,
+                          currentBoardIndex: index,
+                        },
+                      }));
+                    }}
+                  >
+                    {index}
+                  </div>
+                ))}
+                <div
+                  className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-gray-200 dark:bg-[#2c2c2c] rounded-md"
+                  onClick={() => {
+                    useEditorStore.setState((state) => ({
+                      storyBoardSettings: {
+                        ...state.storyBoardSettings,
+                        boards: [...state.storyBoardSettings.boards, {}],
+                      },
+                    }));
+                  }}
+                >
+                  +
+                </div>
               </div>
             </div>
           ) : null}
