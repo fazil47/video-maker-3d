@@ -50,7 +50,7 @@ export type PrimitiveMeshType =
   | "plane"
   | "ground";
 
-export default class App {
+export default class BabylonApp {
   engine: WebGPUEngine | Engine | null = null;
   scene: Scene | null = null;
   invisibleMaterial: StandardMaterial | null = null;

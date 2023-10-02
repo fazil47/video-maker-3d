@@ -18,7 +18,7 @@ import BabylonApp, {
   PrimitiveMeshType,
   SceneSettings,
   TransformGizmoMode,
-} from "@/babylon/app";
+} from "@/babylon/BabylonApp";
 
 interface EditorState {
   panelVisibility: {
