@@ -27,7 +27,6 @@ interface EditorState {
   };
   sceneSettings: SceneSettings;
   storyBoardSettings: {
-    currentBoardIndex: number;
     boards: {}[];
   };
 }
@@ -40,10 +39,10 @@ const useEditorStore = create<EditorState>((set) => ({
   sceneSettings: {
     transformGizmoMode: "position",
     newPrimitiveMeshType: "box",
+    currentBoardIndex: 0,
   },
   storyBoardSettings: {
-    currentBoardIndex: 0,
-    boards: [],
+    boards: [{}],
   },
 }));
 
@@ -247,9 +246,12 @@ export default function BabylonEditor() {
                         ...state.storyBoardSettings,
                         boards: [...state.storyBoardSettings.boards, {}],
                       },
+                      sceneSettings: {
+                        ...state.sceneSettings,
+                        currentBoardIndex:
+                          state.storyBoardSettings.boards.length,
+                      },
                     }));
-
-                    app?.addKeyframe();
                   }}
                 >
                   +

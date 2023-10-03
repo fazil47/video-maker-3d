@@ -40,6 +40,7 @@ import "@babylonjs/loaders/glTF";
 export interface SceneSettings {
   transformGizmoMode: TransformGizmoMode;
   newPrimitiveMeshType: PrimitiveMeshType;
+  currentBoardIndex: number; // Corresponds to the indices in the keyframes array
 }
 
 export type TransformGizmoMode = "position" | "rotation" | "scale";
@@ -63,14 +64,15 @@ export default class BabylonApp {
   skyboxMaterial: SkyMaterial | null = null;
   sunShadowGenerator: ShadowGenerator | null = null;
   animatedNodes: Node[] = [];
-  keyframes: number[] = [];
+  keyframes: number[] = [0];
   frameRate: number = 60;
-  defaultKeyframeGap: number = 10;
+  defaultKeyframeGap: number = this.frameRate; // Equal to 1 second
   savedSceneURL: string | null = null;
   savedSceneFilename: string = "scene"; // TODO: This has to be changed for to support multi-scene projects
   sceneSettings: SceneSettings = {
     transformGizmoMode: "position",
     newPrimitiveMeshType: "box",
+    currentBoardIndex: 0,
   };
   onSceneSettingsChanged: (sceneSettings: SceneSettings) => void = () => {};
 
@@ -103,7 +105,7 @@ export default class BabylonApp {
         (this.keyframes.at(-1) as number) + timeAfterLastKeyframe
       );
     } else {
-      this.keyframes.push(0);
+      throw new Error("No keyframes, this shouldn't have happened");
     }
 
     // TODO: Null check target properties?
@@ -119,6 +121,24 @@ export default class BabylonApp {
             ),
           },
         ]);
+      });
+    });
+  }
+
+  /**
+   * This sets the animated properties match the values at the current board's keyframe.
+   */
+  matchCurrentBoardKeyframe() {
+    if (this.keyframes.length === 0) {
+      throw new Error("No keyframes, this shouldn't have happened");
+    }
+
+    this.animatedNodes.forEach((animatedNode) => {
+      animatedNode.animations.forEach((animation) => {
+        Object.assign(
+          (animatedNode as any)[animation.targetProperty],
+          animation.getKeys()[this.sceneSettings.currentBoardIndex].value
+        );
       });
     });
   }
@@ -166,6 +186,22 @@ export default class BabylonApp {
   public setSceneSettings(settings: SceneSettings) {
     if (!this.gizmoManager) {
       throw new Error("No gizmo manager");
+    }
+
+    if (settings.currentBoardIndex >= this.keyframes.length) {
+      if (settings.currentBoardIndex !== this.keyframes.length) {
+        throw new Error(
+          "Somehow the current board index is greater than the number of keyframes"
+        );
+      }
+
+      this.addKeyframe();
+      this.sceneSettings.currentBoardIndex = settings.currentBoardIndex;
+    } else if (
+      settings.currentBoardIndex !== this.sceneSettings.currentBoardIndex
+    ) {
+      this.sceneSettings.currentBoardIndex = settings.currentBoardIndex;
+      this.matchCurrentBoardKeyframe();
     }
 
     if (settings.transformGizmoMode !== this.sceneSettings.transformGizmoMode) {
@@ -448,9 +484,31 @@ export default class BabylonApp {
     // Add to animatedNodes
 
     // TODO: How do I handle this?
-    meshPositionAnim.setKeys([]);
-    meshRotationAnim.setKeys([]);
-    meshScalingAnim.setKeys([]);
+    // For now I'm adding keys for every keyframe and setting the value to the current value
+    meshPositionAnim.setKeys(
+      this.keyframes.map((keyframe) => {
+        return {
+          frame: keyframe,
+          value: Object.assign({}, mesh.position),
+        };
+      })
+    );
+    meshRotationAnim.setKeys(
+      this.keyframes.map((keyframe) => {
+        return {
+          frame: keyframe,
+          value: Object.assign({}, mesh.rotationQuaternion),
+        };
+      })
+    );
+    meshScalingAnim.setKeys(
+      this.keyframes.map((keyframe) => {
+        return {
+          frame: keyframe,
+          value: Object.assign({}, mesh.scaling),
+        };
+      })
+    );
 
     mesh.animations = [meshPositionAnim, meshRotationAnim, meshScalingAnim];
     this.animatedNodes.push(mesh);
@@ -592,9 +650,31 @@ export default class BabylonApp {
           );
 
           // TODO: How do I handle this?
-          meshPositionAnim.setKeys([]);
-          meshRotationAnim.setKeys([]);
-          meshScalingAnim.setKeys([]);
+          // For now I'm adding keys for every keyframe and setting the value to the current value
+          meshPositionAnim.setKeys(
+            this.keyframes.map((keyframe) => {
+              return {
+                frame: keyframe,
+                value: Object.assign({}, boundingBoxMesh.position),
+              };
+            })
+          );
+          meshRotationAnim.setKeys(
+            this.keyframes.map((keyframe) => {
+              return {
+                frame: keyframe,
+                value: Object.assign({}, boundingBoxMesh.rotationQuaternion),
+              };
+            })
+          );
+          meshScalingAnim.setKeys(
+            this.keyframes.map((keyframe) => {
+              return {
+                frame: keyframe,
+                value: Object.assign({}, boundingBoxMesh.scaling),
+              };
+            })
+          );
 
           boundingBoxMesh.animations = [
             meshPositionAnim,
@@ -704,6 +784,47 @@ export default class BabylonApp {
       gizmoManager.onAttachedToNodeObservable.add(onAttachedToObjectCallback);
       gizmoManager.onAttachedToMeshObservable.add(onAttachedToObjectCallback);
     }
+
+    // TODO: Currently animations are in the an array in order of position, rotation, and scaling. Might need to change this later.
+    gizmoManager.gizmos.positionGizmo?.onDragEndObservable.add(() => {
+      if (
+        gizmoManager.gizmos.positionGizmo?.attachedMesh !== undefined &&
+        gizmoManager.gizmos.positionGizmo?.attachedMesh !== null
+      ) {
+        Object.assign(
+          gizmoManager.gizmos.positionGizmo.attachedMesh.animations[0].getKeys()[
+            this.sceneSettings.currentBoardIndex
+          ].value,
+          gizmoManager.gizmos.positionGizmo.attachedMesh.position
+        );
+      }
+    });
+    gizmoManager.gizmos.rotationGizmo?.onDragEndObservable.add(() => {
+      if (
+        gizmoManager.gizmos.positionGizmo?.attachedMesh !== undefined &&
+        gizmoManager.gizmos.positionGizmo?.attachedMesh !== null
+      ) {
+        Object.assign(
+          gizmoManager.gizmos.positionGizmo.attachedMesh.animations[1].getKeys()[
+            this.sceneSettings.currentBoardIndex
+          ].value,
+          gizmoManager.gizmos.positionGizmo.attachedMesh.rotationQuaternion
+        );
+      }
+    });
+    gizmoManager.gizmos.scaleGizmo?.onDragEndObservable.add(() => {
+      if (
+        gizmoManager.gizmos.positionGizmo?.attachedMesh !== undefined &&
+        gizmoManager.gizmos.positionGizmo?.attachedMesh !== null
+      ) {
+        Object.assign(
+          gizmoManager.gizmos.positionGizmo.attachedMesh.animations[2].getKeys()[
+            this.sceneSettings.currentBoardIndex
+          ].value,
+          gizmoManager.gizmos.positionGizmo.attachedMesh.scaling
+        );
+      }
+    });
 
     return [gizmoManager, utilityLayerRenderer];
   }
@@ -927,9 +1048,30 @@ export default class BabylonApp {
           Animation.ANIMATIONTYPE_VECTOR3
         );
 
-        meshPositionAnim.setKeys([]);
-        meshRotationAnim.setKeys([]);
-        meshScalingAnim.setKeys([]);
+        meshPositionAnim.setKeys(
+          this.keyframes.map((keyframe) => {
+            return {
+              frame: keyframe,
+              value: Object.assign({}, mesh.position),
+            };
+          })
+        );
+        meshRotationAnim.setKeys(
+          this.keyframes.map((keyframe) => {
+            return {
+              frame: keyframe,
+              value: Object.assign({}, mesh.rotationQuaternion),
+            };
+          })
+        );
+        meshScalingAnim.setKeys(
+          this.keyframes.map((keyframe) => {
+            return {
+              frame: keyframe,
+              value: Object.assign({}, mesh.scaling),
+            };
+          })
+        );
 
         mesh.animations = [meshPositionAnim, meshRotationAnim, meshScalingAnim];
         this.animatedNodes.push(mesh);
@@ -1064,9 +1206,30 @@ export default class BabylonApp {
         Animation.ANIMATIONTYPE_VECTOR3
       );
 
-      meshPositionAnim.setKeys([]);
-      meshRotationAnim.setKeys([]);
-      meshScalingAnim.setKeys([]);
+      meshPositionAnim.setKeys(
+        this.keyframes.map((keyframe) => {
+          return {
+            frame: keyframe,
+            value: Object.assign({}, bmwBoundingBoxMesh.position),
+          };
+        })
+      );
+      meshRotationAnim.setKeys(
+        this.keyframes.map((keyframe) => {
+          return {
+            frame: keyframe,
+            value: Object.assign({}, bmwBoundingBoxMesh.rotationQuaternion),
+          };
+        })
+      );
+      meshScalingAnim.setKeys(
+        this.keyframes.map((keyframe) => {
+          return {
+            frame: keyframe,
+            value: Object.assign({}, bmwBoundingBoxMesh.scaling),
+          };
+        })
+      );
 
       bmwBoundingBoxMesh.animations = [
         meshPositionAnim,
