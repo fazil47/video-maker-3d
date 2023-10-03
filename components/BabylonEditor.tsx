@@ -156,7 +156,7 @@ export default function BabylonEditor() {
         }}
       >
         {/* MENUBAR */}
-        <menu className="w-full h-[35px] rounded-md rounded-t-none flex flex-row gap-4 p-1 justify-start items-center align-middle bg-gray-100 dark:bg-[#242424]">
+        <menu className="w-full h-[35px] rounded-md mt-1 flex flex-row gap-4 p-1 justify-start items-center align-middle bg-gray-100 dark:bg-[#242424]">
           <button
             className="p-1"
             onClick={() => {
@@ -755,7 +755,7 @@ export default function BabylonEditor() {
           ) : null}
         </div>
         {/* BOTTOM BAR */}
-        <div className="w-full h-[40px] rounded-md rounded-b-none flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#242424]">
+        <div className="w-full h-[40px] rounded-md mb-1 flex flex-row gap-4 p-1 items-center align-middle bg-gray-100 dark:bg-[#242424]">
           <button
             onClick={(_ev) => {
               useEditorStore.setState((state) => ({
