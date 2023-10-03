@@ -426,7 +426,7 @@ export default class BabylonApp {
               try {
                 this.skySunGizmo.light = skySun;
               } catch (e) {
-                console.log(e);
+                console.error(e);
               }
               if (skySun instanceof DirectionalLight) {
                 this._setupSkybox();
@@ -826,14 +826,6 @@ export default class BabylonApp {
         gizmoManager.gizmos.rotationGizmo?.attachedMesh !== undefined &&
         gizmoManager.gizmos.rotationGizmo?.attachedMesh !== null
       ) {
-        console.log(
-          gizmoManager.gizmos.rotationGizmo.attachedMesh.animations[1].getKeys()[
-            this.sceneSettings.currentBoardIndex
-          ].value
-        );
-        console.log(
-          gizmoManager.gizmos.rotationGizmo.attachedMesh.rotationQuaternion
-        );
         Object.assign(
           gizmoManager.gizmos.rotationGizmo.attachedMesh.animations[1].getKeys()[
             this.sceneSettings.currentBoardIndex
@@ -1036,7 +1028,7 @@ export default class BabylonApp {
     try {
       this.skySunGizmo.light = skySun;
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
 
     // SKYBOX
