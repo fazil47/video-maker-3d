@@ -228,11 +228,17 @@ export default function BabylonEditor() {
                     className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-gray-200 dark:bg-[#2c2c2c] rounded-md"
                     onClick={() => {
                       useEditorStore.setState((state) => ({
-                        storyBoardSettings: {
-                          ...state.storyBoardSettings,
+                        sceneSettings: {
+                          ...state.sceneSettings,
                           currentBoardIndex: index,
                         },
                       }));
+                    }}
+                    style={{
+                      fontWeight:
+                        sceneSettings.currentBoardIndex === index
+                          ? "bold"
+                          : "normal",
                     }}
                   >
                     {index}

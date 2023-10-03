@@ -91,6 +91,10 @@ export default class BabylonApp {
           this.keyframes.at(-1) as number,
           false
         );
+
+        // Set the current board index to the last keyframe's index
+        this.sceneSettings.currentBoardIndex = this.keyframes.length - 1;
+        this.onSceneSettingsChanged?.(this.sceneSettings);
       }
     });
   }
@@ -134,12 +138,29 @@ export default class BabylonApp {
     }
 
     this.animatedNodes.forEach((animatedNode) => {
-      animatedNode.animations.forEach((animation) => {
-        Object.assign(
-          (animatedNode as any)[animation.targetProperty],
-          animation.getKeys()[this.sceneSettings.currentBoardIndex].value
+      if (animatedNode instanceof Mesh) {
+        const pos =
+          animatedNode.animations[0].getKeys()[
+            this.sceneSettings.currentBoardIndex
+          ].value;
+        const rot =
+          animatedNode.animations[1].getKeys()[
+            this.sceneSettings.currentBoardIndex
+          ].value;
+        const scale =
+          animatedNode.animations[2].getKeys()[
+            this.sceneSettings.currentBoardIndex
+          ].value;
+
+        animatedNode.position = new Vector3(pos._x, pos._y, pos._z);
+        animatedNode.rotationQuaternion = new Quaternion(
+          rot._x,
+          rot._y,
+          rot._z,
+          rot._w
         );
-      });
+        animatedNode.scaling = new Vector3(scale._x, scale._y, scale._z);
+      }
     });
   }
 
@@ -776,14 +797,15 @@ export default class BabylonApp {
     gizmoManager.attachableMeshes = [];
     gizmoManager.attachableNodes = [];
 
-    gizmoManager.positionGizmoEnabled = true;
-    gizmoManager.rotationGizmoEnabled = false;
-    gizmoManager.scaleGizmoEnabled = false;
-
     if (onAttachedToObjectCallback) {
       gizmoManager.onAttachedToNodeObservable.add(onAttachedToObjectCallback);
       gizmoManager.onAttachedToMeshObservable.add(onAttachedToObjectCallback);
     }
+
+    // Enabling all the gizmos first to subscribe to onDragEnd observables
+    gizmoManager.positionGizmoEnabled = true;
+    gizmoManager.rotationGizmoEnabled = true;
+    gizmoManager.scaleGizmoEnabled = true;
 
     // TODO: Currently animations are in the an array in order of position, rotation, and scaling. Might need to change this later.
     gizmoManager.gizmos.positionGizmo?.onDragEndObservable.add(() => {
@@ -801,30 +823,42 @@ export default class BabylonApp {
     });
     gizmoManager.gizmos.rotationGizmo?.onDragEndObservable.add(() => {
       if (
-        gizmoManager.gizmos.positionGizmo?.attachedMesh !== undefined &&
-        gizmoManager.gizmos.positionGizmo?.attachedMesh !== null
+        gizmoManager.gizmos.rotationGizmo?.attachedMesh !== undefined &&
+        gizmoManager.gizmos.rotationGizmo?.attachedMesh !== null
       ) {
+        console.log(
+          gizmoManager.gizmos.rotationGizmo.attachedMesh.animations[1].getKeys()[
+            this.sceneSettings.currentBoardIndex
+          ].value
+        );
+        console.log(
+          gizmoManager.gizmos.rotationGizmo.attachedMesh.rotationQuaternion
+        );
         Object.assign(
-          gizmoManager.gizmos.positionGizmo.attachedMesh.animations[1].getKeys()[
+          gizmoManager.gizmos.rotationGizmo.attachedMesh.animations[1].getKeys()[
             this.sceneSettings.currentBoardIndex
           ].value,
-          gizmoManager.gizmos.positionGizmo.attachedMesh.rotationQuaternion
+          gizmoManager.gizmos.rotationGizmo.attachedMesh.rotationQuaternion
         );
       }
     });
     gizmoManager.gizmos.scaleGizmo?.onDragEndObservable.add(() => {
       if (
-        gizmoManager.gizmos.positionGizmo?.attachedMesh !== undefined &&
-        gizmoManager.gizmos.positionGizmo?.attachedMesh !== null
+        gizmoManager.gizmos.scaleGizmo?.attachedMesh !== undefined &&
+        gizmoManager.gizmos.scaleGizmo?.attachedMesh !== null
       ) {
         Object.assign(
-          gizmoManager.gizmos.positionGizmo.attachedMesh.animations[2].getKeys()[
+          gizmoManager.gizmos.scaleGizmo.attachedMesh.animations[2].getKeys()[
             this.sceneSettings.currentBoardIndex
           ].value,
-          gizmoManager.gizmos.positionGizmo.attachedMesh.scaling
+          gizmoManager.gizmos.scaleGizmo.attachedMesh.scaling
         );
       }
     });
+
+    gizmoManager.positionGizmoEnabled = true;
+    gizmoManager.rotationGizmoEnabled = false;
+    gizmoManager.scaleGizmoEnabled = false;
 
     return [gizmoManager, utilityLayerRenderer];
   }
