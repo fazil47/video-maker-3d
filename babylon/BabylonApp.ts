@@ -483,6 +483,9 @@ export default class BabylonApp {
         throw new Error("Invalid mesh type");
     }
 
+    // Set rotation to identity
+    mesh.rotationQuaternion = Quaternion.Identity();
+
     const meshPositionAnim = new Animation(
       `${mesh.name}_position`,
       "position",
@@ -507,28 +510,22 @@ export default class BabylonApp {
     // TODO: How do I handle this?
     // For now I'm adding keys for every keyframe and setting the value to the current value
     meshPositionAnim.setKeys(
-      this.keyframes.map((keyframe) => {
-        return {
-          frame: keyframe,
-          value: Object.assign({}, mesh.position),
-        };
-      })
+      this.keyframes.map((keyframe) => ({
+        frame: keyframe,
+        value: Object.assign({}, mesh.position),
+      }))
     );
     meshRotationAnim.setKeys(
-      this.keyframes.map((keyframe) => {
-        return {
-          frame: keyframe,
-          value: Object.assign({}, mesh.rotationQuaternion),
-        };
-      })
+      this.keyframes.map((keyframe) => ({
+        frame: keyframe,
+        value: Object.assign({}, mesh.rotationQuaternion),
+      }))
     );
     meshScalingAnim.setKeys(
-      this.keyframes.map((keyframe) => {
-        return {
-          frame: keyframe,
-          value: Object.assign({}, mesh.scaling),
-        };
-      })
+      this.keyframes.map((keyframe) => ({
+        frame: keyframe,
+        value: Object.assign({}, mesh.scaling),
+      }))
     );
 
     mesh.animations = [meshPositionAnim, meshRotationAnim, meshScalingAnim];
