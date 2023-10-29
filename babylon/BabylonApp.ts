@@ -115,14 +115,25 @@ export default class BabylonApp {
     // TODO: Null check target properties?
     this.animatedNodes.forEach((animatedNode) => {
       animatedNode.animations.forEach((animation) => {
+        // TODO: Support more than just Mesh position, rotation, and scaling
+        if (
+          !(animatedNode instanceof Mesh) ||
+          !(
+            animation.targetProperty === "position" ||
+            animation.targetProperty === "rotationQuaternion" ||
+            animation.targetProperty === "scaling"
+          )
+        ) {
+          throw new Error(
+            "Unsupported animated node or animation target property"
+          );
+        }
+
         animation.setKeys([
           ...animation.getKeys(),
           {
             frame: this.keyframes.at(-1) as number,
-            value: Object.assign(
-              {},
-              (animatedNode as any)[animation.targetProperty]
-            ),
+            value: animatedNode[animation.targetProperty]?.clone(),
           },
         ]);
       });
@@ -138,28 +149,25 @@ export default class BabylonApp {
     }
 
     this.animatedNodes.forEach((animatedNode) => {
+      // TODO: Support more types of nodes
       if (animatedNode instanceof Mesh) {
-        const pos =
+        // TODO: Maybe store animations in a map instead of an array?
+        // Or store animation indices in a map?
+        animatedNode.position = (
           animatedNode.animations[0].getKeys()[
             this.sceneSettings.currentBoardIndex
-          ].value;
-        const rot =
+          ].value as Vector3
+        ).clone();
+        animatedNode.rotationQuaternion = (
           animatedNode.animations[1].getKeys()[
             this.sceneSettings.currentBoardIndex
-          ].value;
-        const scale =
+          ].value as Quaternion
+        ).clone();
+        animatedNode.scaling = (
           animatedNode.animations[2].getKeys()[
             this.sceneSettings.currentBoardIndex
-          ].value;
-
-        animatedNode.position = new Vector3(pos._x, pos._y, pos._z);
-        animatedNode.rotationQuaternion = new Quaternion(
-          rot._x,
-          rot._y,
-          rot._z,
-          rot._w
-        );
-        animatedNode.scaling = new Vector3(scale._x, scale._y, scale._z);
+          ].value as Vector3
+        ).clone();
       }
     });
   }
@@ -512,19 +520,19 @@ export default class BabylonApp {
     meshPositionAnim.setKeys(
       this.keyframes.map((keyframe) => ({
         frame: keyframe,
-        value: Object.assign({}, mesh.position),
+        value: mesh.position.clone(),
       }))
     );
     meshRotationAnim.setKeys(
       this.keyframes.map((keyframe) => ({
         frame: keyframe,
-        value: Object.assign({}, mesh.rotationQuaternion),
+        value: mesh.rotationQuaternion?.clone(),
       }))
     );
     meshScalingAnim.setKeys(
       this.keyframes.map((keyframe) => ({
         frame: keyframe,
-        value: Object.assign({}, mesh.scaling),
+        value: mesh.scaling.clone(),
       }))
     );
 
@@ -673,7 +681,7 @@ export default class BabylonApp {
             this.keyframes.map((keyframe) => {
               return {
                 frame: keyframe,
-                value: Object.assign({}, boundingBoxMesh.position),
+                value: boundingBoxMesh.position.clone(),
               };
             })
           );
@@ -681,7 +689,7 @@ export default class BabylonApp {
             this.keyframes.map((keyframe) => {
               return {
                 frame: keyframe,
-                value: Object.assign({}, boundingBoxMesh.rotationQuaternion),
+                value: boundingBoxMesh.rotationQuaternion?.clone(),
               };
             })
           );
@@ -689,7 +697,7 @@ export default class BabylonApp {
             this.keyframes.map((keyframe) => {
               return {
                 frame: keyframe,
-                value: Object.assign({}, boundingBoxMesh.scaling),
+                value: boundingBoxMesh.scaling.clone(),
               };
             })
           );
@@ -1075,7 +1083,7 @@ export default class BabylonApp {
           this.keyframes.map((keyframe) => {
             return {
               frame: keyframe,
-              value: Object.assign({}, mesh.position),
+              value: mesh.position.clone(),
             };
           })
         );
@@ -1083,7 +1091,7 @@ export default class BabylonApp {
           this.keyframes.map((keyframe) => {
             return {
               frame: keyframe,
-              value: Object.assign({}, mesh.rotationQuaternion),
+              value: mesh.rotationQuaternion?.clone(),
             };
           })
         );
@@ -1091,7 +1099,7 @@ export default class BabylonApp {
           this.keyframes.map((keyframe) => {
             return {
               frame: keyframe,
-              value: Object.assign({}, mesh.scaling),
+              value: mesh.scaling.clone(),
             };
           })
         );
@@ -1233,7 +1241,7 @@ export default class BabylonApp {
         this.keyframes.map((keyframe) => {
           return {
             frame: keyframe,
-            value: Object.assign({}, bmwBoundingBoxMesh.position),
+            value: bmwBoundingBoxMesh.position.clone(),
           };
         })
       );
@@ -1241,7 +1249,7 @@ export default class BabylonApp {
         this.keyframes.map((keyframe) => {
           return {
             frame: keyframe,
-            value: Object.assign({}, bmwBoundingBoxMesh.rotationQuaternion),
+            value: bmwBoundingBoxMesh.rotationQuaternion?.clone(),
           };
         })
       );
@@ -1249,7 +1257,7 @@ export default class BabylonApp {
         this.keyframes.map((keyframe) => {
           return {
             frame: keyframe,
-            value: Object.assign({}, bmwBoundingBoxMesh.scaling),
+            value: bmwBoundingBoxMesh.scaling.clone(),
           };
         })
       );
