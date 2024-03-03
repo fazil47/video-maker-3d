@@ -67,7 +67,7 @@ import {
 } from "./environment";
 import { addPrimitiveMesh } from "./primitives";
 import { importGLBMesh, loadScene } from "./loading";
-import { addKeyframe, matchCurrentBoardKeyframe } from "./storyBoardanimation";
+import { addKeyframe, matchCurrentBoardKeyframe } from "./storyBoardAnimation";
 
 export default class BabylonVideoMaker implements IVideoMaker {
   public engine: WebGPUEngine | Engine | null = null;
