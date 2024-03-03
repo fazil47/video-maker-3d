@@ -89,9 +89,9 @@ export function addKeyframe(
 }
 
 /**
- * This sets the animated properties match the values at the current board's keyframe.
+ * This sets animated properties to their values at the story board's current keyframe.
  */
-export function matchCurrentBoardKeyframe(
+export function matchBoardCurrentKeyframe(
   storyBoardAnimationGroup: AnimationGroup | null,
   keyframes: number[],
   getSceneSettings: () => SceneSettings | null,

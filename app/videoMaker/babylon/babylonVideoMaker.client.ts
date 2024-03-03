@@ -67,7 +67,7 @@ import {
 } from "./environment";
 import { addPrimitiveMesh } from "./primitives";
 import { importGLBMesh, loadScene } from "./loading";
-import { addKeyframe, matchCurrentBoardKeyframe } from "./storyBoardAnimation";
+import { addKeyframe, matchBoardCurrentKeyframe } from "./storyBoardAnimation";
 
 export default class BabylonVideoMaker implements IVideoMaker {
   public engine: WebGPUEngine | Engine | null = null;
@@ -116,6 +116,34 @@ export default class BabylonVideoMaker implements IVideoMaker {
     new Map<string, MeshWithAnimationGroups>();
   private _animatableAnimationsMap: Map<string, AnimatableAnimationGroup> =
     new Map<string, AnimatableAnimationGroup>();
+
+  /**
+   * Clears the scene.
+   */
+  private _clearScene = () => {
+    this.scene?.meshes.forEach((mesh) => {
+      mesh.dispose();
+    });
+    this.scene?.materials.forEach((material) => {
+      material.dispose();
+    });
+    this.scene?.textures.forEach((texture) => {
+      texture.dispose();
+    });
+    this.scene?.effectLayers.forEach((effectLayer) => {
+      effectLayer.dispose();
+    });
+    this._meshWithAnimationGroupsMap.forEach((mesh) => {
+      mesh.dispose();
+    });
+    this._animatableAnimationsMap.clear();
+    this._meshWithAnimationGroupsMap.clear();
+    this._sunShadowGenerator?.dispose();
+    this._gizmoManager?.dispose();
+    this._camera?.dispose();
+    this.scene?.dispose();
+    this._storyBoardAnimationGroup?.dispose();
+  };
 
   /**
    * This function initializes the engine and scene asynchronously.
@@ -292,7 +320,7 @@ export default class BabylonVideoMaker implements IVideoMaker {
 
     if (flag) {
       this._onSceneSettingsChanged(this._sceneSettings);
-      matchCurrentBoardKeyframe(
+      matchBoardCurrentKeyframe(
         this._storyBoardAnimationGroup,
         this._keyframes,
         this.getSceneSettings,
@@ -588,34 +616,6 @@ export default class BabylonVideoMaker implements IVideoMaker {
         material.wireframe = property.value;
       }
     }
-  }
-
-  /**
-   * Clears the scene.
-   */
-  private _clearScene() {
-    this.scene?.meshes.forEach((mesh) => {
-      mesh.dispose();
-    });
-    this.scene?.materials.forEach((material) => {
-      material.dispose();
-    });
-    this.scene?.textures.forEach((texture) => {
-      texture.dispose();
-    });
-    this.scene?.effectLayers.forEach((effectLayer) => {
-      effectLayer.dispose();
-    });
-    this._meshWithAnimationGroupsMap.forEach((mesh) => {
-      mesh.dispose();
-    });
-    this._animatableAnimationsMap.clear();
-    this._meshWithAnimationGroupsMap.clear();
-    this._sunShadowGenerator?.dispose();
-    this._gizmoManager?.dispose();
-    this._camera?.dispose();
-    this.scene?.dispose();
-    this._storyBoardAnimationGroup?.dispose();
   }
 
   /**
