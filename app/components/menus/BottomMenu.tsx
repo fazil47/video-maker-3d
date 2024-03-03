@@ -1,4 +1,7 @@
-import { PanelVisibility, useEditorStore } from "~/components/BabylonEditor";
+import {
+  PanelVisibility,
+  useEditorStore,
+} from "~/components/videoMakerEditorShell";
 
 export default function BottomMenu() {
   const panelVisibility = useEditorStore<PanelVisibility>(
@@ -8,7 +11,7 @@ export default function BottomMenu() {
   return (
     <div className="w-full h-[40px] mb-1 flex flex-row gap-4 px-1 items-center align-middle">
       <button
-        onClick={(_ev) => {
+        onClick={() => {
           useEditorStore.setState((state) => ({
             panelVisibility: {
               ...state.panelVisibility,
@@ -36,7 +39,7 @@ export default function BottomMenu() {
         placeholder="Chat..."
       />
       <button
-        onClick={(_ev) => {
+        onClick={() => {
           useEditorStore.setState((state) => ({
             panelVisibility: {
               ...state.panelVisibility,

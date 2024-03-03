@@ -1,25 +1,28 @@
 {
   "include": [
-    "remix.env.d.ts",
     "**/*.ts",
-    "**/*.tsx",
+    "**/*.tsx"
   ],
   "compilerOptions": {
     "lib": [
       "DOM",
       "DOM.Iterable",
-      "ES2019"
+      "ES2022"
+    ],
+    "types": [
+      "@remix-run/cloudflare",
+      "vite/client"
     ],
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node",
-    "module": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
-    "target": "ES2019",
-    "skipLibCheck": true,
+    "target": "ES2022",
     "strict": true,
     "allowJs": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
@@ -27,7 +30,7 @@
         "./app/*"
       ]
     },
-    // Remix takes care of building everything in `remix build`.
+    // Vite takes care of building everything, not tsc.
     "noEmit": true
   }
 }

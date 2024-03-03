@@ -1,141 +1,143 @@
-import type BabylonApp from "~/babylon/BabylonApp.client";
 import type {
+  IVideoMaker,
   PrimitiveMeshType,
   SceneSettings,
+  Inspectable,
   TransformGizmoMode,
-} from "~/babylon/BabylonApp.client";
-import {
-  AnimatableAnimationGroup,
-  MeshWithAnimationGroups,
-} from "~/babylon/BabylonApp.client";
-import { Mesh, PBRMaterial, StandardMaterial } from "@babylonjs/core";
+} from "~/videoMaker/interface";
 
-import { useEditorStore } from "~/components/BabylonEditor";
-import AlbedoColorControl from "../controls/pbrmaterial/AlbedoColorControl";
-import AlbedoTextureControl from "../controls/pbrmaterial/AlbedoTextureControl";
-import PBRAmbientColorControl from "../controls/pbrmaterial/AmbientColorControl";
-import ReflectionColorControl from "../controls/pbrmaterial/ReflectionColorControl";
-import ReflectivityColorControl from "../controls/pbrmaterial/ReflectivityColorControl";
-import MetallicControl from "../controls/pbrmaterial/MetallicControl";
-import RoughnessControl from "../controls/pbrmaterial/RoughnessControl";
-import SpecularIntensityControl from "../controls/pbrmaterial/SpecularIntensityControl";
-import DiffuseTextureControl from "../controls/standardmaterial/DiffuseTextureControl";
-import DiffuseColorControl from "../controls/standardmaterial/DiffuseColorControl";
-import StandardAmbientColorControl from "../controls/standardmaterial/AmbientColorControl";
-import SpecularColorControl from "../controls/standardmaterial/SpecularColorControl";
-import SpecularPowerControl from "../controls/standardmaterial/SpecularPowerControl";
 import { useEffect, useState } from "react";
 
-export default function PropertiesSubPanel({ app }: { app: BabylonApp }) {
+import { useEditorStore } from "~/components/videoMakerEditorShell";
+import {
+  isBooleanProperty,
+  isColourProperty,
+  isNumberProperty,
+  isInspectableAnimation,
+  isInspectableMesh,
+  isTextureProperty,
+} from "~/videoMaker/interface";
+import TextureControl from "../controls/textureControl";
+import ColorControl from "../controls/colorControl";
+import NumberControl from "../controls/numberControl";
+import BooleanControl from "../controls/booleanControl";
+import Vector3Control from "../controls/vector3Control";
+
+export default function PropertiesSubPanel({
+  videoMaker,
+}: {
+  videoMaker: IVideoMaker;
+}) {
   const sceneSettings = useEditorStore<SceneSettings>(
     (state: { sceneSettings: SceneSettings }) => state.sceneSettings
   );
 
-  const [animationCurrentFrame, setAnimationCurrentFrame] = useState<number>(0);
+  const [selectedObject, setSelectedObject] = useState<Inspectable | null>(
+    null
+  );
 
   useEffect(() => {
     if (sceneSettings.selectedItemID) {
-      const selectedObject = app.getObjectById(sceneSettings.selectedItemID);
-      if (selectedObject instanceof AnimatableAnimationGroup) {
-        setAnimationCurrentFrame(selectedObject.currentFrame);
-      }
+      const selectable = videoMaker.getInspectableById(
+        sceneSettings.selectedItemID
+      );
+      setSelectedObject(selectable);
+    } else {
+      setSelectedObject(null);
     }
-  }, [sceneSettings.selectedItemID, sceneSettings.currentBoardIndex]);
+  }, [sceneSettings.selectedItemID, videoMaker]);
 
-  let selectedObject = sceneSettings.selectedItemID
-    ? app.getObjectById(sceneSettings.selectedItemID)
-    : null;
-  if (selectedObject instanceof MeshWithAnimationGroups) {
-    selectedObject = selectedObject.mesh;
-  }
-
-  // TODO: Instead of passing app as prop, pass required functions alone (is this worth it?)
   let PropertiesControls;
   if (selectedObject) {
-    if (selectedObject instanceof Mesh) {
-      if (selectedObject.material instanceof PBRMaterial) {
-        PropertiesControls = (
-          <>
-            <AlbedoTextureControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <AlbedoColorControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <PBRAmbientColorControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <ReflectionColorControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <ReflectivityColorControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <MetallicControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <RoughnessControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <SpecularIntensityControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-          </>
-        );
-      } else if (selectedObject.material instanceof StandardMaterial) {
-        PropertiesControls = (
-          <>
-            <DiffuseTextureControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <DiffuseColorControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <StandardAmbientColorControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <SpecularColorControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-            <SpecularPowerControl
-              selectedMeshMaterial={selectedObject.material}
-              app={app}
-            />
-          </>
-        );
-      }
-    } else if (selectedObject instanceof AnimatableAnimationGroup) {
+    if (isInspectableAnimation(selectedObject)) {
       PropertiesControls = (
-        <div>
-          <label>Animation Progress</label>
-          <input
-            type="range"
-            min={selectedObject.firstFrame}
-            max={selectedObject.lastFrame}
-            step={0.01}
-            value={animationCurrentFrame}
-            onChange={(ev) => {
-              (
-                selectedObject as AnimatableAnimationGroup
-              ).setCurrentFrameAndWriteToAnimation(parseFloat(ev.target.value));
-              setAnimationCurrentFrame(
-                (selectedObject as AnimatableAnimationGroup).currentFrame
-              );
-            }}
-          />
-        </div>
+        <NumberControl
+          videoMaker={videoMaker}
+          selectable={selectedObject}
+          numberProperty={selectedObject.getCurrentFrameProperty()}
+        />
+      );
+    } else if (isInspectableMesh(selectedObject)) {
+      const transformControls = [
+        selectedObject.getPositionProperty(),
+        selectedObject.getRotationProperty(),
+        selectedObject.getScalingPropery(),
+      ].map((property) => (
+        <Vector3Control
+          key={property.key}
+          videoMaker={videoMaker}
+          selectable={selectedObject}
+          vector3Property={property}
+        />
+      ));
+
+      let materialPropertyControls;
+      if (selectedObject && selectedObject.getInspectableMeshMaterial) {
+        const selectableMeshMaterial =
+          selectedObject.getInspectableMeshMaterial();
+
+        materialPropertyControls =
+          selectableMeshMaterial === null
+            ? null
+            : selectableMeshMaterial.getMaterialProperties().map((property) => {
+                if (isTextureProperty(property)) {
+                  return (
+                    <TextureControl
+                      key={property.key}
+                      videoMaker={videoMaker}
+                      selectable={selectableMeshMaterial}
+                      textureProperty={property}
+                    />
+                  );
+                } else if (isColourProperty(property)) {
+                  return (
+                    <ColorControl
+                      key={property.key}
+                      videoMaker={videoMaker}
+                      selectable={selectableMeshMaterial}
+                      colorProperty={property}
+                      label={property.key}
+                    />
+                  );
+                } else if (isNumberProperty(property)) {
+                  return (
+                    <NumberControl
+                      key={property.key}
+                      videoMaker={videoMaker}
+                      selectable={selectableMeshMaterial}
+                      numberProperty={property}
+                    />
+                  );
+                } else if (isBooleanProperty(property)) {
+                  return (
+                    <BooleanControl
+                      key={property.key}
+                      videoMaker={videoMaker}
+                      selectable={selectableMeshMaterial}
+                      booleanControl={property}
+                    />
+                  );
+                }
+              });
+      }
+
+      PropertiesControls = (
+        <>
+          <>
+            <div className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none">
+              Transform
+            </div>
+            {transformControls}
+          </>
+          {materialPropertyControls ? (
+            <>
+              <div className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none">
+                Material Properties
+              </div>
+              {materialPropertyControls}
+            </>
+          ) : null}
+        </>
       );
     }
   }
@@ -160,9 +162,11 @@ export default function PropertiesSubPanel({ app }: { app: BabylonApp }) {
         <option value="rotation">Rotation</option>
         <option value="scale">Scale</option>
       </select>
-      <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
-        {PropertiesControls}
-      </div>
+      {PropertiesControls ? (
+        <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
+          {PropertiesControls}
+        </div>
+      ) : null}
       <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
         <select
           value={sceneSettings.newPrimitiveMeshType}
@@ -188,7 +192,7 @@ export default function PropertiesSubPanel({ app }: { app: BabylonApp }) {
         <button
           className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
           onClick={() => {
-            app.addPrimitiveMesh();
+            videoMaker.addPrimitiveMesh();
           }}
         >
           Add Mesh
@@ -197,7 +201,7 @@ export default function PropertiesSubPanel({ app }: { app: BabylonApp }) {
       <button
         className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
         onClick={() => {
-          app.importGLBMesh();
+          videoMaker.importGLBModel();
         }}
       >
         Import GLB Mesh
@@ -205,7 +209,7 @@ export default function PropertiesSubPanel({ app }: { app: BabylonApp }) {
       <button
         className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
         onClick={() => {
-          app.deleteSelectedItem();
+          videoMaker.deleteInspectable();
         }}
       >
         Delete

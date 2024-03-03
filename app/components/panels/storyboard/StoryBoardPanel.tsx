@@ -1,12 +1,16 @@
-import type BabylonApp from "~/babylon/BabylonApp.client";
-import type { SceneSettings } from "~/babylon/BabylonApp.client";
-import { StoryBoardSettings, useEditorStore } from "~/components/BabylonEditor";
+import {
+  StoryBoardSettings,
+  useEditorStore,
+} from "~/components/videoMakerEditorShell";
+import { IVideoMaker, SceneSettings } from "~/videoMaker/interface";
 
 export type StoryBoardPanelProps = {
-  app: BabylonApp;
+  videoMaker: IVideoMaker;
 };
 
-export default function StoryBoardPanel({ app }: StoryBoardPanelProps) {
+export default function StoryBoardPanel({
+  videoMaker: app,
+}: StoryBoardPanelProps) {
   const sceneSettings = useEditorStore<SceneSettings>(
     (state) => state.sceneSettings
   );
@@ -29,7 +33,7 @@ export default function StoryBoardPanel({ app }: StoryBoardPanelProps) {
       </button>
       <div className="flex flex-col gap-3 overflow-y-scroll w-full h-full items-center p-1 pb-3">
         {storyBoardSettings.boards.map((board, index) => (
-          <div
+          <button
             key={index}
             className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-gray-200 dark:bg-[#2c2c2c] rounded-md"
             onClick={() => {
@@ -46,9 +50,9 @@ export default function StoryBoardPanel({ app }: StoryBoardPanelProps) {
             }}
           >
             {index}
-          </div>
+          </button>
         ))}
-        <div
+        <button
           className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-gray-200 dark:bg-[#2c2c2c] rounded-md"
           onClick={() => {
             useEditorStore.setState((state) => ({
@@ -64,7 +68,7 @@ export default function StoryBoardPanel({ app }: StoryBoardPanelProps) {
           }}
         >
           +
-        </div>
+        </button>
       </div>
     </div>
   );

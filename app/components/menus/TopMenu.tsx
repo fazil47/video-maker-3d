@@ -1,10 +1,6 @@
-import BabylonApp from "~/babylon/BabylonApp.client";
+import { IVideoMaker } from "~/videoMaker/interface";
 
-export type TopMenuProps = {
-  app: BabylonApp;
-};
-
-export default function TopMenu({ app }: TopMenuProps) {
+export default function TopMenu({ videoMaker }: { videoMaker: IVideoMaker }) {
   return (
     <menu className="w-full h-[35px] mt-1 flex flex-row gap-4 px-1 justify-start items-center align-middle">
       <button
@@ -18,7 +14,7 @@ export default function TopMenu({ app }: TopMenuProps) {
       <button
         className="p-1"
         onClick={() => {
-          app.saveScene();
+          videoMaker.saveScene();
         }}
       >
         Save
@@ -26,7 +22,7 @@ export default function TopMenu({ app }: TopMenuProps) {
       <button
         className="p-1"
         onClick={() => {
-          app.loadScene();
+          videoMaker.loadScene();
         }}
       >
         Load

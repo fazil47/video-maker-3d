@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@netlify/remix-runtime";
+import { MetaFunction } from "@remix-run/cloudflare";
 import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
@@ -8,13 +8,14 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export default function Home() {
+export default function Index() {
   return (
     <main className="h-screen flex flex-col justify-center align-middle items-center">
-      <h1 className="font-bold text-3xl">Video Maker 3D</h1>
+      <Link to="/webgl">
+        <h1 className="font-bold text-3xl">Video Maker 3D</h1>
+      </Link>
       <div className="p-4 flex flex-row">
-        <Link to="/webgl">WebGL</Link>&nbsp;|&nbsp;
-        <Link to="/webgpu">WebGPU</Link>
+        <Link to="/webgpu">WebGPU (unstable)</Link>
       </div>
     </main>
   );
