@@ -33,3 +33,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/.cache
+/public/build
+.env
+
+# Local Netlify folder
+.netlify
+
+# Local Cloudflare folder
+.wrangler
+
+vite.config.ts.timestamp-*.mjs
