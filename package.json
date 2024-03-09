@@ -1,32 +1,55 @@
 {
   "name": "video-maker-3d",
-  "version": "0.1.0",
   "private": true,
+  "sideEffects": false,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "devDependencies": {
-    "@babylonjs/inspector": "^6.27.1"
+    "dev": "remix vite:dev --host",
+    "build": "remix vite:build",
+    "start": "wrangler pages dev ./build/client",
+    "deploy": "wrangler pages deploy ./build/client",
+    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "typecheck": "tsc",
+    "typegen": "wrangler types",
+    "tails": "wrangler pages deployment tail --project-name video-maker-3d-remix-vite"
   },
   "dependencies": {
-    "@babylonjs/core": "^6.27.1",
-    "@babylonjs/loaders": "^6.27.1",
-    "@babylonjs/materials": "^6.27.1",
-    "@types/node": "^20.8.9",
-    "@types/react": "^18.2.33",
-    "@types/react-dom": "^18.2.14",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.52.0",
-    "eslint-config-next": "13.4.19",
-    "next": "13.4.19",
-    "postcss": "^8.4.31",
+    "@babylonjs/core": "^6.46.0",
+    "@babylonjs/loaders": "^6.46.0",
+    "@babylonjs/materials": "^6.46.0",
+    "@remix-run/cloudflare": "^2.8.1",
+    "@remix-run/cloudflare-pages": "^2.8.1",
+    "@remix-run/react": "^2.8.1",
+    "@zip.js/zip.js": "^2.7.40",
+    "isbot": "^4.4.0",
+    "miniflare": "^3.20240304.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tailwindcss": "^3.3.5",
-    "typescript": "^5.2.2",
-    "zustand": "^4.4.4"
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@babylonjs/inspector": "^6.46.0",
+    "@cloudflare/workers-types": "^4.20240222.0",
+    "@remix-run/dev": "^2.8.1",
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^8.57.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "node-fetch": "^3.3.2",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.5",
+    "vite-tsconfig-paths": "^4.3.1",
+    "wrangler": "^3.32.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
