@@ -14,6 +14,7 @@
 
 # production
 /build
+/public/build
 
 # misc
 .DS_Store
@@ -35,7 +36,6 @@ yarn-error.log*
 next-env.d.ts
 
 /.cache
-/public/build
 .env
 
 # Local Netlify folder

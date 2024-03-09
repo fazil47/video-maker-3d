@@ -1,17 +1,12 @@
-import stylesheet from "./globals.css";
-import type { LinksFunction } from "@netlify/remix-runtime";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import "./globals.css";
 
-export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: stylesheet },
-];
 export default function App() {
   return (
     <html lang="en">
@@ -25,7 +20,6 @@ export default function App() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );

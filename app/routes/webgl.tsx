@@ -1,14 +1,14 @@
-import type { MetaFunction } from "@netlify/remix-runtime";
+import type { MetaFunction } from "@remix-run/cloudflare";
 
-import BabylonEditor from "~/components/BabylonEditor";
+import BabylonVideoMakerEditor from "~/components/babylonVideoMakerEditor";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Video Maker 3D | Editor" },
+    { title: "Video Maker 3D | WebGL Editor" },
     { name: "description", content: "The Video Maker 3D Editor" },
   ];
 };
 
 export default function Editor() {
-  return <BabylonEditor useWebGPU={false} />;
+  return <BabylonVideoMakerEditor useWebGPU={false} />;
 }

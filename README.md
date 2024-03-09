@@ -1,85 +1,48 @@
-# Welcome to Remix!
+# Welcome to Remix + Vite
 
-- [Remix Docs](https://remix.run/docs)
-- [Netlify Edge Functions Overview](https://docs.netlify.com/edge-functions/overview/)
+📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
 
-## Netlify Setup
+## Typegen
 
-1. Install the [Netlify CLI](https://docs.netlify.com/cli/get-started/):
-
-```sh
-npm i -g netlify-cli
-```
-
-If you have previously installed the Netlify CLI, you should update it to the latest version:
+Generate types for your Cloudflare bindings in `wrangler.toml`:
 
 ```sh
-npm i -g netlify-cli@latest
+pnpm run typegen
 ```
 
-2. Sign up and log in to Netlify:
-
-```sh
-netlify login
-```
-
-3. Create a new site:
-
-```sh
-netlify init
-```
+You will need to rerun typegen whenever you make changes to `wrangler.toml`.
 
 ## Development
 
-Ensure all packages are installed by running:
+Run the Vite dev server:
 
 ```sh
-npm install
+pnpm run dev
 ```
 
-Run
+To run Wrangler:
 
 ```sh
-npm run dev
-```
-
-Open up [http://localhost:8888](http://localhost:8888), and you're ready to go!
-
-### Serve your site locally
-
-To serve your site locally in a production-like environment, run
-
-```sh
-npm run start
-```
-
-Your site will be available at [http://localhost:8888](http://localhost:8888). Note that it will not auto-reload when you make changes.
-
-## Excluding routes
-
-You can exclude routes for non-Remix code such as custom Netlify Functions or Edge Functions. To do this, add an additional entry in the array like in the example below:
-
-```diff
-export const config = {
-  cache: "manual",
-  path: "/*",
-  // Let the CDN handle requests for static assets, i.e. /_assets/*
-  //
-  // Add other exclusions here, e.g. "/api/*" for custom Netlify functions or
-  // custom Netlify Edge Functions
--  excluded_patterns: ["/_assets/*"],
-+  excluded_patterns: ["/_assets/*", "/api/*"],
-};
+pnpm run build
+pnpm run start
 ```
 
 ## Deployment
 
-There are two ways to deploy your app to Netlify, you can either link your app to your git repo and have it auto deploy changes to Netlify, or you can deploy your app manually. If you've followed the setup instructions already, all you need to do is run this:
+> [!WARNING]  
+> Cloudflare does _not_ use `wrangler.toml` to configure deployment bindings.
+> You **MUST** [configure deployment bindings manually in the Cloudflare dashboard][bindings].
+
+First, build your app for production:
 
 ```sh
-# preview deployment
-netlify deploy --build
-
-# production deployment
-netlify deploy --build --prod
+pnpm run build
 ```
+
+Then, deploy your app to Cloudflare Pages:
+
+```sh
+pnpm run deploy
+```
+
+[bindings]: https://developers.cloudflare.com/pages/functions/bindings/
