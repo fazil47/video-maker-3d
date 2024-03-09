@@ -24,6 +24,9 @@ import BooleanControl from "../controls/booleanControl";
 import Vector3Control from "../controls/vector3Control";
 import NumberSliderControl from "../controls/numberSliderControl";
 
+// TODO: Consolidate NumberSliderControl and NumberControl into a single control
+// If the NumberProperty has from and to values then it should be a slider, otherwise it should be a number input
+
 export default function PropertiesSubPanel({
   videoMaker,
 }: {
