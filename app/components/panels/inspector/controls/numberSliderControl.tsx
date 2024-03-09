@@ -5,14 +5,18 @@ import {
   Inspectable,
 } from "~/videoMaker/interface";
 
-export default function NumberControl({
+export default function NumberSliderControl({
   videoMaker,
   selectable,
   numberProperty,
+  from,
+  to,
 }: {
   videoMaker: IVideoMaker;
   selectable: Inspectable;
   numberProperty: NumberProperty;
+  from: number;
+  to: number;
 }) {
   const [number, setNumber] = useState<number | null>(numberProperty.value);
 
@@ -24,7 +28,9 @@ export default function NumberControl({
     <div>
       <label>{numberProperty.key}</label>
       <input
-        type="number"
+        type="range"
+        min={from}
+        max={to}
         value={number || 0}
         step={0.1}
         onChange={(ev) => {

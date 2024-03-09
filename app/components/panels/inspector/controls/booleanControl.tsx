@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IVideoMaker,
   BooleanProperty,
@@ -8,23 +8,27 @@ import {
 export default function BooleanControl({
   videoMaker,
   selectable,
-  booleanControl: booleanControl,
+  booleanProperty,
 }: {
   videoMaker: IVideoMaker;
   selectable: Inspectable;
-  booleanControl: BooleanProperty;
+  booleanProperty: BooleanProperty;
 }) {
-  const [boolean, setBoolean] = useState<boolean>(booleanControl.value);
+  const [boolean, setBoolean] = useState<boolean>(booleanProperty.value);
+
+  useEffect(() => {
+    setBoolean(booleanProperty.value);
+  }, [booleanProperty.value]);
 
   return (
     <div>
-      <label>{booleanControl.key}</label>
+      <label>{booleanProperty.key}</label>
       <input
         type="checkbox"
         checked={boolean}
         onChange={(ev) => {
           videoMaker.setInspectableProperty(selectable, {
-            key: booleanControl.key,
+            key: booleanProperty.key,
             value: ev.target.checked,
           });
           setBoolean(ev.target.checked);

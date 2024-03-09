@@ -50,7 +50,7 @@ export default function HeirarchySubPanel({
           return (
             <li key={i} className="flex flex-col">
               <button
-                className="w-full cursor-pointer hover:bg-gray-300 hover:dark:bg-[#3a3a3a] rounded-md p-1"
+                className="w-full cursor-pointer hover:bg-gray-300 hover:dark:bg-[#3a3a3a] rounded-md p-1 text-left"
                 onClick={() => {
                   videoMaker.selectInspectable(obj);
                 }}

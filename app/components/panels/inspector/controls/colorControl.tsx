@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IVideoMaker,
   ColourProperty,
@@ -17,6 +17,10 @@ export default function ColorControl({
   colorProperty: ColourProperty;
 }) {
   const [color, setColor] = useState<string | null>(colorProperty.value);
+
+  useEffect(() => {
+    setColor(colorProperty.value);
+  }, [colorProperty.value]);
 
   return (
     <div>

@@ -1,6 +1,15 @@
-import type { Quaternion, Vector3, AbstractMesh } from "@babylonjs/core";
+import type {
+  Quaternion,
+  Vector3,
+  AbstractMesh,
+  Animation,
+} from "@babylonjs/core";
 
-import type { InspectableMesh, Vector3Property } from "~/videoMaker/interface";
+import type {
+  InspectableAnimation,
+  InspectableMesh,
+  Vector3Property,
+} from "~/videoMaker/interface";
 import type { AnimatableAnimationGroup } from "./animatableAnimationGroup";
 
 export class MeshWithAnimationGroups implements InspectableMesh {
@@ -36,6 +45,14 @@ export class MeshWithAnimationGroups implements InspectableMesh {
     this._mesh.scaling = scaling;
   }
 
+  public get animations(): Animation[] {
+    return this._mesh.animations;
+  }
+
+  public set animations(animations: Animation[]) {
+    this._mesh.animations = animations;
+  }
+
   public getPositionProperty(): Vector3Property {
     return {
       key: "position",
@@ -67,6 +84,10 @@ export class MeshWithAnimationGroups implements InspectableMesh {
 
   public getInspectableMeshMaterial() {
     return null; // MeshWithAnimationGroups shouldn't expose its material
+  }
+
+  public getInspectableAnimations(): InspectableAnimation[] {
+    return this._animationGroups;
   }
 
   public get animationGroups(): AnimatableAnimationGroup[] {

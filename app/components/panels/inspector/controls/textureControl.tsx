@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IVideoMaker,
   Inspectable,
@@ -15,6 +15,10 @@ export default function TextureControl({
   textureProperty: TextureProperty;
 }) {
   const [texture, setTexture] = useState<string | null>(textureProperty.value);
+
+  useEffect(() => {
+    setTexture(textureProperty.value);
+  }, [textureProperty.value]);
 
   return (
     <div>

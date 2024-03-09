@@ -77,6 +77,124 @@ export default class BabylonVideoMaker implements IVideoMaker {
     return this._sceneInspectables;
   }
 
+  /**
+   * Get scene settings.
+   * Note: This is an arrow function because it needs to be passed as a callback to other functions.
+   * @returns The current scene settings.
+   */
+  public getSceneSettings: () => SceneSettings | null = () => {
+    return this._sceneSettings;
+  };
+
+  /**
+   * Sets scene settings.
+   * Note: This is an arrow function because it needs to be passed as a callback to other functions.
+   * @param settings New scene settings.
+   */
+  public setSceneSettings: (settings: Partial<SceneSettings>) => void = (
+    settings: Partial<SceneSettings>
+  ) => {
+    if (!this._gizmoManager) {
+      // TODO: Not throwing an error because gizmo manager is not initialized when loading a scene
+      // when using WebGPU
+      console.log("No gizmo manager");
+      return;
+    }
+
+    let flag = false; // Flag to check if any settings have changed
+
+    if (settings.currentBoardIndex !== undefined) {
+      flag = true; // Assume the current board index has changed
+
+      if (settings.currentBoardIndex > this._keyframes.length) {
+        throw new Error(
+          "Somehow the current board index is greater than the number of keyframes"
+        );
+      } else if (settings.currentBoardIndex === this._keyframes.length) {
+        addKeyframe(
+          this._storyBoardAnimationGroup,
+          this._keyframes,
+          this._defaultKeyframeGap
+        );
+        this._sceneSettings!.currentBoardIndex = settings.currentBoardIndex;
+      } else if (
+        settings.currentBoardIndex !== this._sceneSettings!.currentBoardIndex
+      ) {
+        this._sceneSettings!.currentBoardIndex = settings.currentBoardIndex;
+      } else {
+        flag = false; // Don't set flag if the current board index hasn't changed
+      }
+    }
+
+    if (
+      settings.transformGizmoMode !== undefined &&
+      settings.transformGizmoMode !== this._sceneSettings!.transformGizmoMode
+    ) {
+      flag = true;
+
+      this._sceneSettings!.transformGizmoMode = settings.transformGizmoMode;
+      switch (settings.transformGizmoMode) {
+        case "position":
+          this._gizmoManager.positionGizmoEnabled = true;
+          this._gizmoManager.rotationGizmoEnabled = false;
+          this._gizmoManager.scaleGizmoEnabled = false;
+          break;
+        case "rotation":
+          this._gizmoManager.positionGizmoEnabled = false;
+          this._gizmoManager.rotationGizmoEnabled = true;
+          this._gizmoManager.scaleGizmoEnabled = false;
+          break;
+        case "scale":
+          this._gizmoManager.positionGizmoEnabled = false;
+          this._gizmoManager.rotationGizmoEnabled = false;
+          this._gizmoManager.scaleGizmoEnabled = true;
+          break;
+      }
+    }
+
+    if (
+      settings.newPrimitiveMeshType !== undefined &&
+      settings.newPrimitiveMeshType !==
+        this._sceneSettings!.newPrimitiveMeshType
+    ) {
+      flag = true;
+      this._sceneSettings!.newPrimitiveMeshType = settings.newPrimitiveMeshType;
+    }
+
+    // Explicitly check for not undefined because null is a valid value
+    if (
+      settings.selectedItemID !== undefined &&
+      settings.selectedItemID !== this._sceneSettings!.selectedItemID
+    ) {
+      flag = true;
+      this._sceneSettings!.selectedItemID = settings.selectedItemID;
+    }
+
+    if (flag) {
+      this._onSceneSettingsChanged(this._sceneSettings);
+      matchBoardCurrentKeyframe(
+        this._storyBoardAnimationGroup,
+        this._keyframes,
+        this.getSceneSettings,
+        () => {
+          if (!this._skySunGizmo?.light) {
+            throw new Error("No sky sun light");
+          }
+
+          updateSkybox(
+            this._skySunGizmo.light as DirectionalLight,
+            this._skyboxMaterial
+          );
+        }
+      );
+
+      if (process.env.NODE_ENV === "development") {
+        // This is a workaround for a bug in development mode
+        saveSettingsToSessionStorage(this._sceneSettings);
+      }
+    }
+  };
+
   private set sceneInspectables(sceneInspectables: Inspectable[]) {
     this._sceneInspectables = sceneInspectables;
   }
@@ -229,120 +347,6 @@ export default class BabylonVideoMaker implements IVideoMaker {
     this._storyBoardAnimationGroup?.play();
   }
 
-  /**
-   * Get scene settings.
-   * @returns The current scene settings.
-   */
-  public getSceneSettings: () => SceneSettings | null = () => {
-    return this._sceneSettings;
-  };
-
-  /**
-   * Sets scene settings.
-   * @param settings New scene settings.
-   */
-  public setSceneSettings(settings: Partial<SceneSettings>) {
-    if (!this._gizmoManager) {
-      // TODO: Not throwing an error because gizmo manager is not initialized when loading a scene
-      // when using WebGPU
-      console.log("No gizmo manager");
-      return;
-    }
-
-    let flag = false; // Flag to check if any settings have changed
-
-    if (settings.currentBoardIndex !== undefined) {
-      flag = true; // Assume the current board index has changed
-
-      if (settings.currentBoardIndex > this._keyframes.length) {
-        throw new Error(
-          "Somehow the current board index is greater than the number of keyframes"
-        );
-      } else if (settings.currentBoardIndex === this._keyframes.length) {
-        addKeyframe(
-          this._storyBoardAnimationGroup,
-          this._keyframes,
-          this._defaultKeyframeGap
-        );
-        this._sceneSettings!.currentBoardIndex = settings.currentBoardIndex;
-      } else if (
-        settings.currentBoardIndex !== this._sceneSettings!.currentBoardIndex
-      ) {
-        this._sceneSettings!.currentBoardIndex = settings.currentBoardIndex;
-      } else {
-        flag = false; // Don't set flag if the current board index hasn't changed
-      }
-    }
-
-    if (
-      settings.transformGizmoMode !== undefined &&
-      settings.transformGizmoMode !== this._sceneSettings!.transformGizmoMode
-    ) {
-      flag = true;
-
-      this._sceneSettings!.transformGizmoMode = settings.transformGizmoMode;
-      switch (settings.transformGizmoMode) {
-        case "position":
-          this._gizmoManager.positionGizmoEnabled = true;
-          this._gizmoManager.rotationGizmoEnabled = false;
-          this._gizmoManager.scaleGizmoEnabled = false;
-          break;
-        case "rotation":
-          this._gizmoManager.positionGizmoEnabled = false;
-          this._gizmoManager.rotationGizmoEnabled = true;
-          this._gizmoManager.scaleGizmoEnabled = false;
-          break;
-        case "scale":
-          this._gizmoManager.positionGizmoEnabled = false;
-          this._gizmoManager.rotationGizmoEnabled = false;
-          this._gizmoManager.scaleGizmoEnabled = true;
-          break;
-      }
-    }
-
-    if (
-      settings.newPrimitiveMeshType !== undefined &&
-      settings.newPrimitiveMeshType !==
-        this._sceneSettings!.newPrimitiveMeshType
-    ) {
-      flag = true;
-      this._sceneSettings!.newPrimitiveMeshType = settings.newPrimitiveMeshType;
-    }
-
-    // Explicitly check for not undefined because null is a valid value
-    if (
-      settings.selectedItemID !== undefined &&
-      settings.selectedItemID !== this._sceneSettings!.selectedItemID
-    ) {
-      flag = true;
-      this._sceneSettings!.selectedItemID = settings.selectedItemID;
-    }
-
-    if (flag) {
-      this._onSceneSettingsChanged(this._sceneSettings);
-      matchBoardCurrentKeyframe(
-        this._storyBoardAnimationGroup,
-        this._keyframes,
-        this.getSceneSettings,
-        () => {
-          if (!this._skySunGizmo?.light) {
-            throw new Error("No sky sun light");
-          }
-
-          updateSkybox(
-            this._skySunGizmo.light as DirectionalLight,
-            this._skyboxMaterial
-          );
-        }
-      );
-
-      if (process.env.NODE_ENV === "development") {
-        // This is a workaround for a bug in development mode
-        saveSettingsToSessionStorage(this._sceneSettings);
-      }
-    }
-  }
-
   public setInspectableProperty(
     selectable: Inspectable,
     property:
@@ -352,6 +356,11 @@ export default class BabylonVideoMaker implements IVideoMaker {
       | TextureProperty
       | Vector3Property
   ) {
+    const sceneSettings = this.getSceneSettings();
+    if (!sceneSettings) {
+      throw new Error("No scene settings");
+    }
+
     if (
       isInspectableMesh(selectable) &&
       (selectable instanceof AbstractMesh ||
@@ -365,6 +374,12 @@ export default class BabylonVideoMaker implements IVideoMaker {
               property.value[1],
               property.value[2]
             );
+            Object.assign(
+              selectable.animations[0].getKeys()[
+                sceneSettings.currentBoardIndex
+              ].value,
+              selectable.position
+            );
             break;
           case "rotation":
             selectable.rotationQuaternion = new Vector3(
@@ -372,12 +387,24 @@ export default class BabylonVideoMaker implements IVideoMaker {
               property.value[1],
               property.value[2]
             ).toQuaternion();
+            Object.assign(
+              selectable.animations[1].getKeys()[
+                sceneSettings.currentBoardIndex
+              ].value,
+              selectable.rotationQuaternion
+            );
             break;
           case "scaling":
             selectable.scaling = new Vector3(
               property.value[0],
               property.value[1],
               property.value[2]
+            );
+            Object.assign(
+              selectable.animations[2].getKeys()[
+                sceneSettings.currentBoardIndex
+              ].value,
+              selectable.scaling
             );
             break;
         }
@@ -390,6 +417,11 @@ export default class BabylonVideoMaker implements IVideoMaker {
         switch (property.key) {
           case "currentFrame":
             selectable.currentFrame = property.value;
+            if (selectable.animation) {
+              selectable.animation.getKeys()[
+                sceneSettings.currentBoardIndex
+              ].value = selectable.currentFrame;
+            }
             break;
           case "blendWeight":
             selectable.blendWeight = property.value;
@@ -530,7 +562,40 @@ export default class BabylonVideoMaker implements IVideoMaker {
       resetSnapshot,
       this._clearScene,
       updateSkybox,
-      () => {}
+      (
+        scene: Scene,
+        invisibleMaterial: StandardMaterial,
+        camera: FreeCamera,
+        gizmoManager: GizmoManager,
+        utilityLayerRenderer: UtilityLayerRenderer,
+        skySunGizmo: LightGizmo,
+        skyboxMaterial: SkyMaterial,
+        sunShadowGenerator: ShadowGenerator,
+        storyBoardAnimationGroup: AnimationGroup,
+        storyBoardAnimationGroupPlayingInterval: number | null,
+        skySunGizmoRotationInterval: number | null,
+        keyFrames: number[],
+        sceneInspectables: Inspectable[],
+        meshWithAnimationGroupsMap: Map<string, MeshWithAnimationGroups>,
+        animatableAnimationsMap: Map<string, AnimatableAnimationGroup>
+      ) => {
+        this.scene = scene;
+        this._invisibleMaterial = invisibleMaterial;
+        this._camera = camera;
+        this._gizmoManager = gizmoManager;
+        this._utilityLayerRenderer = utilityLayerRenderer;
+        this._skySunGizmo = skySunGizmo;
+        this._skyboxMaterial = skyboxMaterial;
+        this._sunShadowGenerator = sunShadowGenerator;
+        this._storyBoardAnimationGroup = storyBoardAnimationGroup;
+        this._storyBoardAnimationGroupPlayingInterval =
+          storyBoardAnimationGroupPlayingInterval;
+        this._skySunGizmoRotationInterval = skySunGizmoRotationInterval;
+        this._keyframes = keyFrames;
+        this._sceneInspectables = sceneInspectables;
+        this._meshWithAnimationGroupsMap = meshWithAnimationGroupsMap;
+        this._animatableAnimationsMap = animatableAnimationsMap;
+      }
     );
   }
 

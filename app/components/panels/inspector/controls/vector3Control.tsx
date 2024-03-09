@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IVideoMaker,
   Vector3Property,
@@ -17,6 +17,10 @@ export default function Vector3Control({
   const [vector, setVector] = useState<[number, number, number]>(
     vector3Property.value
   );
+
+  useEffect(() => {
+    setVector(vector3Property.value);
+  }, [vector3Property.value]);
 
   return (
     <div>

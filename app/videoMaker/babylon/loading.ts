@@ -14,16 +14,29 @@ import type {
 } from "@babylonjs/core";
 import type { SkyMaterial } from "@babylonjs/materials";
 
-import "@babylonjs/core/Loading/Plugins/babylonFileLoader";
+// TODO: Find side-effect imports needed for tree shaking to work
+// Until then I'm importing everything from @babylonjs/core
+import { SceneLoader } from "@babylonjs/core";
+
+// // eslint-disable-next-line import/no-duplicates
+// import "@babylonjs/core/Materials/standardMaterial";
+// // eslint-disable-next-line import/no-duplicates
+// import "@babylonjs/core/Materials/PBR/pbrMaterial";
+// import "@babylonjs/core/Loading/Plugins/babylonFileLoader";
+// import "@babylonjs/core/Loading/loadingScreen";
+// import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
+
+// eslint-disable-next-line import/no-duplicates
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+// eslint-disable-next-line import/no-duplicates
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Tags } from "@babylonjs/core/Misc/tags";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+// import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
 import { GLTFFileLoader } from "@babylonjs/loaders/glTF";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
@@ -173,8 +186,23 @@ export function loadScene(
             const skySunRotationAnimationResponse: Response = await fetch(
               skySunRotationAnimationBlobURL
             );
+            const serializedSkySunRotationAnimationValues: {
+              _x: number;
+              _y: number;
+              _z: number;
+              _w: number;
+            }[] = await skySunRotationAnimationResponse.json();
             skySunRotationAnimationValues =
-              await skySunRotationAnimationResponse.json();
+              serializedSkySunRotationAnimationValues.map(
+                (serializedQuaternion) => {
+                  return new Quaternion(
+                    serializedQuaternion._x,
+                    serializedQuaternion._y,
+                    serializedQuaternion._z,
+                    serializedQuaternion._w
+                  );
+                }
+              );
           }
         })
       );

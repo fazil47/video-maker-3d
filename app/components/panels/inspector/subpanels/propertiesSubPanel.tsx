@@ -22,6 +22,7 @@ import ColorControl from "../controls/colorControl";
 import NumberControl from "../controls/numberControl";
 import BooleanControl from "../controls/booleanControl";
 import Vector3Control from "../controls/vector3Control";
+import NumberSliderControl from "../controls/numberSliderControl";
 
 export default function PropertiesSubPanel({
   videoMaker,
@@ -45,16 +46,22 @@ export default function PropertiesSubPanel({
     } else {
       setSelectedObject(null);
     }
-  }, [sceneSettings.selectedItemID, videoMaker]);
+  }, [
+    sceneSettings.selectedItemID,
+    sceneSettings.currentBoardIndex,
+    videoMaker,
+  ]);
 
   let PropertiesControls;
   if (selectedObject) {
     if (isInspectableAnimation(selectedObject)) {
       PropertiesControls = (
-        <NumberControl
+        <NumberSliderControl
           videoMaker={videoMaker}
           selectable={selectedObject}
           numberProperty={selectedObject.getCurrentFrameProperty()}
+          from={selectedObject.firstFrame}
+          to={selectedObject.lastFrame}
         />
       );
     } else if (isInspectableMesh(selectedObject)) {
@@ -114,7 +121,7 @@ export default function PropertiesSubPanel({
                       key={property.key}
                       videoMaker={videoMaker}
                       selectable={selectableMeshMaterial}
-                      booleanControl={property}
+                      booleanProperty={property}
                     />
                   );
                 }
