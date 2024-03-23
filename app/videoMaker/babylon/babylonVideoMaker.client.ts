@@ -896,22 +896,20 @@ export default class BabylonVideoMaker implements IVideoMaker {
     }
 
     if (process.env.NODE_ENV === "development") {
-      const { default: insp } = await import("@babylonjs/inspector");
+      const { Inspector } = await import("@babylonjs/inspector");
+      let isVisible = false;
 
       // Show or hide Inspector visibility
-      // I'm not toggling the visibility of the Inspector because remix runs this code twice
-      // so it would show and then immediately hide the Inspector
       window.addEventListener("keydown", (ev) => {
         // Shift + Ctrl + Alt + I
         if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.code === "KeyI") {
-          insp.Inspector.Show(scene, {});
-        } else if (
-          ev.shiftKey &&
-          ev.ctrlKey &&
-          ev.altKey &&
-          ev.code === "KeyO"
-        ) {
-          insp.Inspector.Hide();
+          if (isVisible) {
+            Inspector.Hide();
+            isVisible = false;
+          } else {
+            Inspector.Show(scene, {});
+            isVisible = true;
+          }
         }
       });
     }
