@@ -25,6 +25,7 @@ import type {
 import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
+import { VideoRecorder } from "@babylonjs/core/Misc/videoRecorder";
 import "@babylonjs/core/Engines/WebGPU/webgpuShaderProcessorsGLSL";
 import "@babylonjs/core/Engines/WebGPU/webgpuSnapshotRendering";
 import "@babylonjs/core/Engines/WebGPU/Extensions";
@@ -336,15 +337,51 @@ export default class BabylonVideoMaker implements IVideoMaker {
     );
   }
 
-  /**
-   * Plays the story board animation group.
-   */
-  public PlayStoryBoardAnimation(): void {
+  public PlayStoryBoardAnimation(onEndCallback?: () => void): void {
+    if (onEndCallback) {
+      this._storyBoardAnimationGroup?.onAnimationGroupEndObservable.addOnce(
+        onEndCallback
+      );
+    }
+
     this._storyBoardAnimationGroup?.normalize(
       0,
       this._keyframes.at(-1) as number
     );
     this._storyBoardAnimationGroup?.play();
+  }
+
+  public RecordStoryBoardAnimation(): void {
+    if (!this.engine) {
+      console.log("No engine");
+      return;
+    }
+
+    if (!this.scene) {
+      console.log("No scene");
+      return;
+    }
+
+    if (!this._keyframes || this._keyframes.length === 0) {
+      console.log("No keyframes");
+      return;
+    }
+
+    if (VideoRecorder.IsSupported(this.engine)) {
+      const videoRecorder = new VideoRecorder(this.engine, {
+        fps: this._frameRate,
+        recordChunckSize: 300,
+      });
+      videoRecorder.startRecording("storyboard.webm", 0);
+
+      setTimeout(() => {
+        this.PlayStoryBoardAnimation(() => {
+          setTimeout(() => {
+            videoRecorder.stopRecording();
+          }, 100);
+        });
+      }, 100);
+    }
   }
 
   public setInspectableProperty(

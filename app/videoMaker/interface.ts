@@ -22,6 +22,11 @@ export interface IVideoMaker {
   PlayStoryBoardAnimation: () => void;
 
   /**
+   * Records the story board animation of the current scene and saves it to disk.
+   */
+  RecordStoryBoardAnimation: () => void;
+
+  /**
    * Gets the current scene settings.
    * @returns The current scene settings, or `null` if there are no scene settings.
    */

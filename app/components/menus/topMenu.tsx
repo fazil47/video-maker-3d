@@ -6,14 +6,6 @@ export default function TopMenu({ videoMaker }: { videoMaker: IVideoMaker }) {
       <button
         className="p-1"
         onClick={() => {
-          alert("Not implemented yet");
-        }}
-      >
-        File
-      </button>
-      <button
-        className="p-1"
-        onClick={() => {
           videoMaker.saveScene();
         }}
       >
@@ -30,26 +22,10 @@ export default function TopMenu({ videoMaker }: { videoMaker: IVideoMaker }) {
       <button
         className="p-1"
         onClick={() => {
-          alert("Not implemented yet");
+          videoMaker.RecordStoryBoardAnimation();
         }}
       >
-        Edit
-      </button>
-      <button
-        className="p-1"
-        onClick={() => {
-          alert("Not implemented yet");
-        }}
-      >
-        View
-      </button>
-      <button
-        className="p-1"
-        onClick={() => {
-          alert("Not implemented yet");
-        }}
-      >
-        Help
+        Record
       </button>
     </menu>
   );
