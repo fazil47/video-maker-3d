@@ -21,10 +21,16 @@
     "@remix-run/cloudflare-pages": "^2.8.1",
     "@remix-run/react": "^2.8.1",
     "@zip.js/zip.js": "^2.7.40",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
     "isbot": "^4.4.0",
+    "lucide-react": "^0.363.0",
     "miniflare": "^3.20240320.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-resizable-panels": "^2.0.14",
+    "tailwind-merge": "^2.2.2",
+    "tailwindcss-animate": "^1.0.7",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

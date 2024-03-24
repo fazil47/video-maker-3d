@@ -2,6 +2,11 @@ import type { IVideoMaker, SceneSettings } from "~/videoMaker/interface";
 
 import { ReactNode, useEffect } from "react";
 import { create } from "zustand";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 import TopMenu from "./menus/topMenu";
 import StoryBoardPanel from "./panels/storyboard/storyBoardPanel";
@@ -90,9 +95,8 @@ export default function VideoMakerEditorShell({
 
   // Resize render canvas when panel visibility changes
   useEffect(() => {
-    resizeRenderCanvas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panelVisibility]);
+    setTimeout(resizeRenderCanvas, 100); // Delay to allow DOM to update
+  }, [panelVisibility, resizeRenderCanvas]);
 
   return (
     <>
@@ -109,15 +113,37 @@ export default function VideoMakerEditorShell({
       >
         {videoMaker ? <TopMenu videoMaker={videoMaker} /> : null}
         {/* PANELS */}
-        <div className="overflow-hidden w-full flex-grow flex flex-row gap-1 justify-center items-center align-middle">
+        <ResizablePanelGroup direction="horizontal">
           {videoMaker && panelVisibility.storyBoard ? (
-            <StoryBoardPanel videoMaker={videoMaker} />
+            <>
+              <ResizablePanel defaultSize={20} id="storyBoard" order={0}>
+                <div className="h-full">
+                  <StoryBoardPanel videoMaker={videoMaker} />
+                </div>
+              </ResizablePanel>
+              <ResizableHandle
+                className="w-1"
+                onDragging={resizeRenderCanvas}
+              />
+            </>
           ) : null}
-          <div className="h-full flex-grow rounded-md">{children}</div>
+          <ResizablePanel defaultSize={100} id="renderCanvas" order={1}>
+            <div className="h-full">{children}</div>
+          </ResizablePanel>
           {videoMaker && panelVisibility.inspector ? (
-            <InspectorPanel videoMaker={videoMaker} />
+            <>
+              <ResizableHandle
+                className="w-1"
+                onDragging={resizeRenderCanvas}
+              />
+              <ResizablePanel defaultSize={20} id="inspector" order={2}>
+                <div className="h-full">
+                  <InspectorPanel videoMaker={videoMaker} />
+                </div>
+              </ResizablePanel>
+            </>
           ) : null}
-        </div>
+        </ResizablePanelGroup>
         <BottomMenu />
       </div>
     </>
