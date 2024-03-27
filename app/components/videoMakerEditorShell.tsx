@@ -6,7 +6,7 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "shadcn/components/ui/resizable";
 
 import TopMenu from "./menus/topMenu";
 import StoryBoardPanel from "./panels/storyboard/storyBoardPanel";
