@@ -44,13 +44,13 @@ export default function HeirarchySubPanel({
   };
 
   return (
-    <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#2c2c2c]">
+    <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
       <ul>
         {videoMaker.sceneInspectables.map((obj, i) => {
           return (
             <li key={i} className="flex flex-col">
               <button
-                className="w-full cursor-pointer hover:bg-gray-300 hover:dark:bg-[#3a3a3a] rounded-md p-1 text-left"
+                className="w-full cursor-pointer rounded-md p-1 text-left"
                 onClick={() => {
                   videoMaker.selectInspectable(obj);
                 }}

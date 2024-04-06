@@ -29,7 +29,7 @@ export default function TextureControl({
             <img src={texture} alt={textureProperty.key} className="w-full" />
           ) : null}
           <button
-            className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+            className="w-full rounded-md focus:outline-none"
             onClick={() => {
               videoMaker.setInspectableProperty(selectable, {
                 key: textureProperty.key,
@@ -44,7 +44,7 @@ export default function TextureControl({
         </>
       ) : (
         <button
-          className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+          className="w-full rounded-md focus:outline-none"
           onClick={() => {
             const fileInput = document.createElement("input");
             fileInput.type = "file";

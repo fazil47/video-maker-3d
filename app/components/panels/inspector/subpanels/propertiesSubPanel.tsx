@@ -134,14 +134,14 @@ export default function PropertiesSubPanel({
       PropertiesControls = (
         <>
           <>
-            <div className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none">
+            <div className="w-full rounded-md focus:outline-none">
               Transform
             </div>
             {transformControls}
           </>
           {materialPropertyControls ? (
             <>
-              <div className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none">
+              <div className="w-full rounded-md focus:outline-none">
                 Material Properties
               </div>
               {materialPropertyControls}
@@ -153,7 +153,7 @@ export default function PropertiesSubPanel({
   }
 
   return (
-    <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#2c2c2c]">
+    <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
       <select
         value={sceneSettings.transformGizmoMode}
         onChange={(ev) => {
@@ -166,18 +166,18 @@ export default function PropertiesSubPanel({
             })
           );
         }}
-        className="w-full rounded-md bg-gray-300 dark:bg-[#303030] focus:outline-none"
+        className="w-full rounded-md focus:outline-none"
       >
         <option value="position">Position</option>
         <option value="rotation">Rotation</option>
         <option value="scale">Scale</option>
       </select>
       {PropertiesControls ? (
-        <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
+        <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
           {PropertiesControls}
         </div>
       ) : null}
-      <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2 bg-gray-200 dark:bg-[#303030]">
+      <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
         <select
           value={sceneSettings.newPrimitiveMeshType}
           onChange={(ev) => {
@@ -190,7 +190,7 @@ export default function PropertiesSubPanel({
               })
             );
           }}
-          className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+          className="w-full rounded-md focus:outline-none"
         >
           <option value="box">Box</option>
           <option value="sphere">Sphere</option>
@@ -200,7 +200,7 @@ export default function PropertiesSubPanel({
           <option value="ground">Ground</option>
         </select>
         <button
-          className="w-full rounded-md bg-gray-300 dark:bg-[#3a3a3a] focus:outline-none"
+          className="w-full rounded-md focus:outline-none"
           onClick={() => {
             videoMaker.addPrimitiveMesh();
           }}
@@ -209,7 +209,7 @@ export default function PropertiesSubPanel({
         </button>
       </div>
       <button
-        className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
+        className="w-full rounded-md focus:outline-none"
         onClick={() => {
           videoMaker.importGLBModel();
         }}
@@ -217,7 +217,7 @@ export default function PropertiesSubPanel({
         Import GLB Mesh
       </button>
       <button
-        className="w-full rounded-md bg-gray-200 dark:bg-[#303030] focus:outline-none"
+        className="w-full rounded-md focus:outline-none"
         onClick={() => {
           videoMaker.deleteInspectable();
         }}

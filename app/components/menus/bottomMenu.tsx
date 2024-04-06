@@ -20,7 +20,7 @@ export default function BottomMenu() {
           }));
         }}
         className={`py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md ${
-          panelVisibility.storyBoard ? "bg-gray-100 dark:bg-[#242424]" : ""
+          panelVisibility.storyBoard ? "bg-secondary" : "bg-background"
         }`}
       >
         Board
@@ -35,7 +35,7 @@ export default function BottomMenu() {
       </button>
       <input
         type="text"
-        className="p-1 h-[25px] flex-grow rounded-md bg-gray-100 dark:bg-[#242424] focus:outline-none"
+        className="p-1 h-[25px] flex-grow rounded-md  focus:outline-none"
         placeholder="Chat..."
       />
       <button
@@ -48,7 +48,7 @@ export default function BottomMenu() {
           }));
         }}
         className={`py-1 px-2 h-[25px] flex flex-col justify-center align-middle items-center rounded-md ${
-          panelVisibility.inspector ? "bg-gray-100 dark:bg-[#242424]" : ""
+          panelVisibility.inspector ? "bg-secondary" : "bg-background"
         }`}
       >
         Inspector

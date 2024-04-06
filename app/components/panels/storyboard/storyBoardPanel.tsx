@@ -19,7 +19,7 @@ export default function StoryBoardPanel({
   );
 
   return (
-    <div className="h-full overflow-hidden flex flex-col items-center rounded-md bg-gray-100 dark:bg-[#242424]">
+    <div className="h-full overflow-hidden flex flex-col items-center rounded-md bg-primary text-primary-foreground">
       <div className="p-1 w-full text-center text-xl font-bold rounded-md rounded-b-none">
         Story Board
       </div>
@@ -35,7 +35,7 @@ export default function StoryBoardPanel({
         {storyBoardSettings.boards.map((board, index) => (
           <button
             key={index}
-            className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-gray-200 dark:bg-[#2c2c2c] rounded-md"
+            className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-secondary text-secondary-foreground rounded-md"
             onClick={() => {
               useEditorStore.setState((state) => ({
                 sceneSettings: {
@@ -53,7 +53,7 @@ export default function StoryBoardPanel({
           </button>
         ))}
         <button
-          className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-gray-200 dark:bg-[#2c2c2c] rounded-md"
+          className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-secondary text-secondary-foreground rounded-md"
           onClick={() => {
             useEditorStore.setState((state) => ({
               storyBoardSettings: {
