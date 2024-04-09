@@ -44,7 +44,7 @@ export default function HeirarchySubPanel({
   };
 
   return (
-    <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
+    <div className="overflow-y-auto overflow-x-hidden p-1 w-full h-full flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
       <ul>
         {videoMaker.sceneInspectables.map((obj, i) => {
           return (

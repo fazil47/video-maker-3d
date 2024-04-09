@@ -3,7 +3,6 @@ import type {
   PrimitiveMeshType,
   SceneSettings,
   Inspectable,
-  TransformGizmoMode,
 } from "~/videoMaker/interface";
 
 import { useEffect, useState } from "react";
@@ -153,25 +152,7 @@ export default function PropertiesSubPanel({
   }
 
   return (
-    <div className="overflow-y-auto overflow-x-hidden h-[50%] p-1 w-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
-      <select
-        value={sceneSettings.transformGizmoMode}
-        onChange={(ev) => {
-          useEditorStore.setState(
-            (state: { sceneSettings: SceneSettings }) => ({
-              sceneSettings: {
-                ...state.sceneSettings,
-                transformGizmoMode: ev.target.value as TransformGizmoMode,
-              },
-            })
-          );
-        }}
-        className="w-full rounded-md focus:outline-none"
-      >
-        <option value="position">Position</option>
-        <option value="rotation">Rotation</option>
-        <option value="scale">Scale</option>
-      </select>
+    <div className="overflow-y-auto overflow-x-hidden p-1 w-full h-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
       {PropertiesControls ? (
         <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
           {PropertiesControls}
