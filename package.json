@@ -17,6 +17,7 @@
     "@babylonjs/core": "^7.1.0",
     "@babylonjs/loaders": "^7.1.0",
     "@babylonjs/materials": "^7.1.0",
+    "@radix-ui/react-scroll-area": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toggle": "^1.0.3",
     "@remix-run/cloudflare": "^2.8.1",

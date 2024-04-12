@@ -1,3 +1,4 @@
+import { ScrollArea } from "shadcn/components/ui/scroll-area";
 import {
   StoryBoardSettings,
   useEditorStore,
@@ -19,7 +20,7 @@ export default function StoryBoardPanel({
   );
 
   return (
-    <div className="h-full overflow-hidden flex flex-col items-center rounded-md bg-primary text-primary-foreground">
+    <div className="h-full w-full flex flex-col items-center rounded-md bg-primary text-primary-foreground">
       <div className="p-1 w-full text-center text-xl font-bold rounded-md rounded-b-none">
         Story Board
       </div>
@@ -31,45 +32,47 @@ export default function StoryBoardPanel({
       >
         Play
       </button>
-      <div className="flex flex-col gap-3 overflow-y-scroll w-full h-full items-center p-1 pb-3">
-        {storyBoardSettings.boards.map((board, index) => (
+      <ScrollArea className="h-full w-full bg-secondary text-secondary-foreground rounded-md p-2">
+        <div className="h-full w-full flex flex-col gap-2">
+          {storyBoardSettings.boards.map((board, index) => (
+            <button
+              key={index}
+              className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-tertiary text-tertiary-foreground rounded-md"
+              onClick={() => {
+                useEditorStore.setState((state) => ({
+                  sceneSettings: {
+                    ...state.sceneSettings,
+                    currentBoardIndex: index,
+                  },
+                }));
+              }}
+              style={{
+                fontWeight:
+                  sceneSettings.currentBoardIndex === index ? "bold" : "normal",
+              }}
+            >
+              {index}
+            </button>
+          ))}
           <button
-            key={index}
-            className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-secondary text-secondary-foreground rounded-md"
+            className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-tertiary text-tertiary-foreground rounded-md"
             onClick={() => {
               useEditorStore.setState((state) => ({
+                storyBoardSettings: {
+                  ...state.storyBoardSettings,
+                  boards: [...state.storyBoardSettings.boards, {}],
+                },
                 sceneSettings: {
                   ...state.sceneSettings,
-                  currentBoardIndex: index,
+                  currentBoardIndex: state.storyBoardSettings.boards.length,
                 },
               }));
             }}
-            style={{
-              fontWeight:
-                sceneSettings.currentBoardIndex === index ? "bold" : "normal",
-            }}
           >
-            {index}
+            +
           </button>
-        ))}
-        <button
-          className="cursor-pointer w-full min-h-[100px] flex flex-col justify-center items-center text-center bg-secondary text-secondary-foreground rounded-md"
-          onClick={() => {
-            useEditorStore.setState((state) => ({
-              storyBoardSettings: {
-                ...state.storyBoardSettings,
-                boards: [...state.storyBoardSettings.boards, {}],
-              },
-              sceneSettings: {
-                ...state.sceneSettings,
-                currentBoardIndex: state.storyBoardSettings.boards.length,
-              },
-            }));
-          }}
-        >
-          +
-        </button>
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   );
 }
