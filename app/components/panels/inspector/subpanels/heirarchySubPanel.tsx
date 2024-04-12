@@ -1,3 +1,4 @@
+import { ScrollArea } from "shadcn/components/ui/scroll-area";
 import type { IVideoMaker, Inspectable } from "~/videoMaker/interface";
 
 import { isInspectableMesh } from "~/videoMaker/interface";
@@ -44,25 +45,27 @@ export default function HeirarchySubPanel({
   };
 
   return (
-    <div className="overflow-y-auto overflow-x-hidden p-1 w-full h-full flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
-      <ul>
-        {videoMaker.sceneInspectables.map((obj, i) => {
-          return (
-            <li key={i} className="flex flex-col">
-              <button
-                className="w-full cursor-pointer rounded-md p-1 text-left"
-                onClick={() => {
-                  videoMaker.selectInspectable(obj);
-                }}
-              >
-                {obj.name}
-              </button>
-              {/* List of  animations if they exist */}
-              {getInspectableAnimations(obj)}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+    <ScrollArea className="h-full w-full bg-secondary text-secondary-foreground rounded-md">
+      <div className="p-1 w-full h-full flex flex-col items-center align-middle gap-2">
+        <ul>
+          {videoMaker.sceneInspectables.map((obj, i) => {
+            return (
+              <li key={i} className="flex flex-col">
+                <button
+                  className="w-full cursor-pointer rounded-md p-1 text-left"
+                  onClick={() => {
+                    videoMaker.selectInspectable(obj);
+                  }}
+                >
+                  {obj.name}
+                </button>
+                {/* List of  animations if they exist */}
+                {getInspectableAnimations(obj)}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </ScrollArea>
   );
 }

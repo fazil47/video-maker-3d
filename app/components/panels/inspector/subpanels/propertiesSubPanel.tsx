@@ -7,6 +7,7 @@ import type {
 
 import { useEffect, useState } from "react";
 
+import { ScrollArea } from "shadcn/components/ui/scroll-area";
 import { useEditorStore } from "~/components/videoMakerEditorShell";
 import {
   isBooleanProperty,
@@ -152,59 +153,61 @@ export default function PropertiesSubPanel({
   }
 
   return (
-    <div className="overflow-y-auto overflow-x-hidden p-1 w-full h-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2 bg-secondary text-secondary-foreground">
-      {PropertiesControls ? (
-        <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
-          {PropertiesControls}
+    <ScrollArea className="h-full w-full bg-secondary text-secondary-foreground rounded-md">
+      <div className="px-1 py-2 w-full h-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2">
+        {PropertiesControls ? (
+          <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
+            {PropertiesControls}
+          </div>
+        ) : null}
+        <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
+          <select
+            value={sceneSettings.newPrimitiveMeshType}
+            onChange={(ev) => {
+              useEditorStore.setState(
+                (state: { sceneSettings: SceneSettings }) => ({
+                  sceneSettings: {
+                    ...state.sceneSettings,
+                    newPrimitiveMeshType: ev.target.value as PrimitiveMeshType,
+                  },
+                })
+              );
+            }}
+            className="w-full rounded-md focus:outline-none"
+          >
+            <option value="box">Box</option>
+            <option value="sphere">Sphere</option>
+            <option value="cylinder">Cylinder</option>
+            <option value="torus">Torus</option>
+            <option value="plane">Plane</option>
+            <option value="ground">Ground</option>
+          </select>
+          <button
+            className="w-full rounded-md focus:outline-none"
+            onClick={() => {
+              videoMaker.addPrimitiveMesh();
+            }}
+          >
+            Add Mesh
+          </button>
         </div>
-      ) : null}
-      <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
-        <select
-          value={sceneSettings.newPrimitiveMeshType}
-          onChange={(ev) => {
-            useEditorStore.setState(
-              (state: { sceneSettings: SceneSettings }) => ({
-                sceneSettings: {
-                  ...state.sceneSettings,
-                  newPrimitiveMeshType: ev.target.value as PrimitiveMeshType,
-                },
-              })
-            );
-          }}
-          className="w-full rounded-md focus:outline-none"
-        >
-          <option value="box">Box</option>
-          <option value="sphere">Sphere</option>
-          <option value="cylinder">Cylinder</option>
-          <option value="torus">Torus</option>
-          <option value="plane">Plane</option>
-          <option value="ground">Ground</option>
-        </select>
         <button
           className="w-full rounded-md focus:outline-none"
           onClick={() => {
-            videoMaker.addPrimitiveMesh();
+            videoMaker.importGLBModel();
           }}
         >
-          Add Mesh
+          Import GLB Mesh
+        </button>
+        <button
+          className="w-full rounded-md focus:outline-none"
+          onClick={() => {
+            videoMaker.deleteInspectable();
+          }}
+        >
+          Delete
         </button>
       </div>
-      <button
-        className="w-full rounded-md focus:outline-none"
-        onClick={() => {
-          videoMaker.importGLBModel();
-        }}
-      >
-        Import GLB Mesh
-      </button>
-      <button
-        className="w-full rounded-md focus:outline-none"
-        onClick={() => {
-          videoMaker.deleteInspectable();
-        }}
-      >
-        Delete
-      </button>
-    </div>
+    </ScrollArea>
   );
 }

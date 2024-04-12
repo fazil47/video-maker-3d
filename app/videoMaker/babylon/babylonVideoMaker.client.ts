@@ -108,9 +108,10 @@ export default class BabylonVideoMaker implements IVideoMaker {
       flag = true; // Assume the current board index has changed
 
       if (settings.currentBoardIndex > this._keyframes.length) {
-        throw new Error(
+        console.warn(
           "Somehow the current board index is greater than the number of keyframes"
         );
+        return;
       } else if (settings.currentBoardIndex === this._keyframes.length) {
         addKeyframe(
           this._storyBoardAnimationGroup,
