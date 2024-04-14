@@ -60,6 +60,24 @@ export default function BabylonVideoMakerEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine]);
 
+  // Resize on RMB click because Safari shows a banner when RMB is held
+  useEffect(() => {
+    const resizeRenderCanvasOnRMB = (evt: PointerEvent) => {
+      if (evt.button === 2) {
+        resizeRenderCanvas();
+      }
+    };
+    if (window) {
+      window.addEventListener("pointerdown", resizeRenderCanvasOnRMB);
+      window.addEventListener("pointerup", resizeRenderCanvasOnRMB);
+      return () => {
+        window.removeEventListener("pointerdown", resizeRenderCanvasOnRMB);
+        window.removeEventListener("pointerup", resizeRenderCanvasOnRMB);
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Initialize Babylon app
   useEffect(() => {
     if (renderCanvas.current && !engine && !scene) {
