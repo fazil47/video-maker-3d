@@ -14,9 +14,9 @@
     "tails": "wrangler pages deployment tail --project-name video-maker-3d-remix-vite"
   },
   "dependencies": {
-    "@babylonjs/core": "^7.1.0",
-    "@babylonjs/loaders": "^7.1.0",
-    "@babylonjs/materials": "^7.1.0",
+    "@babylonjs/core": "^7.2.1",
+    "@babylonjs/loaders": "^7.2.1",
+    "@babylonjs/materials": "^7.2.1",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-context-menu": "^2.1.5",
     "@radix-ui/react-label": "^2.0.2",
@@ -33,7 +33,7 @@
     "clsx": "^2.1.0",
     "isbot": "^4.4.0",
     "lucide-react": "^0.363.0",
-    "miniflare": "^3.20240404.0",
+    "miniflare": "^3.20240405.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-resizable-panels": "^2.0.16",
@@ -42,11 +42,11 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@babylonjs/inspector": "^7.1.0",
+    "@babylonjs/inspector": "^7.2.1",
     "@cloudflare/workers-types": "^4.20240405.0",
     "@remix-run/dev": "^2.8.1",
-    "@types/react": "^18.2.74",
-    "@types/react-dom": "^18.2.24",
+    "@types/react": "^18.2.78",
+    "@types/react-dom": "^18.2.25",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
@@ -58,10 +58,10 @@
     "node-fetch": "^3.3.2",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.4",
+    "typescript": "^5.4.5",
     "vite": "^5.2.8",
     "vite-tsconfig-paths": "^4.3.2",
-    "wrangler": "^3.48.0"
+    "wrangler": "^3.50.0"
   },
   "engines": {
     "node": ">=18.0.0"
