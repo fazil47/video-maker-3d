@@ -110,7 +110,7 @@ export default function TopMenu({ videoMaker }: { videoMaker: IVideoMaker }) {
           </MenubarContent>
         </MenubarMenu>
       </Menubar>
-      <div>
+      <div className="flex flex-row gap-1">
         <Button
           className="px-2 py-1"
           size="xs"
