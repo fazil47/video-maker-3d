@@ -20,6 +20,7 @@ import type {
   TextureProperty,
   Vector3Property,
   SceneSettings,
+  PrimitiveMeshType,
 } from "~/videoMaker/interface";
 
 import { Scene } from "@babylonjs/core/scene";
@@ -154,15 +155,6 @@ export default class BabylonVideoMaker implements IVideoMaker {
       }
     }
 
-    if (
-      settings.newPrimitiveMeshType !== undefined &&
-      settings.newPrimitiveMeshType !==
-        this._sceneSettings!.newPrimitiveMeshType
-    ) {
-      flag = true;
-      this._sceneSettings!.newPrimitiveMeshType = settings.newPrimitiveMeshType;
-    }
-
     // Explicitly check for not undefined because null is a valid value
     if (
       settings.selectedItemID !== undefined &&
@@ -219,7 +211,6 @@ export default class BabylonVideoMaker implements IVideoMaker {
   private _savedSceneFilename: string = "scene"; // TODO: This has to be changed for to support multi-scene projects
   private _sceneSettings: SceneSettings = {
     transformGizmoMode: "position",
-    newPrimitiveMeshType: "box",
     currentBoardIndex: 0,
     selectedItemID: null,
   };
@@ -291,7 +282,7 @@ export default class BabylonVideoMaker implements IVideoMaker {
     });
   }
 
-  public addPrimitiveMesh() {
+  public addPrimitiveMesh(primitiveMeshType: PrimitiveMeshType) {
     addPrimitiveMesh(
       this.scene,
       this._gizmoManager,
@@ -300,7 +291,7 @@ export default class BabylonVideoMaker implements IVideoMaker {
       this._keyframes,
       this._storyBoardAnimationGroup,
       this._frameRate,
-      this.getSceneSettings
+      primitiveMeshType
     );
   }
 

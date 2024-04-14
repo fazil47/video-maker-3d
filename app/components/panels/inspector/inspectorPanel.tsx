@@ -29,14 +29,16 @@ export default function InspectorPanel({
         </ResizablePanel>
         {sceneSettings.selectedItemID ? (
           <>
-            <ResizableHandle className="h-1 bg-background" />
+            <ResizableHandle
+              className="bg-primary text-primary-foreground"
+              withHandle
+            />
             <ResizablePanel defaultSize={50} id="properties" order={1}>
               <PropertiesSubPanel videoMaker={videoMaker} />
             </ResizablePanel>
           </>
         ) : null}
       </ResizablePanelGroup>
-      {/* </div> */}
     </div>
   );
 }

@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
-import {
+import type {
   IVideoMaker,
   Inspectable,
   TextureProperty,
 } from "~/videoMaker/interface";
+
+import { useEffect, useState } from "react";
+
+import { Button } from "shadcn/components/ui/button";
+import { Label } from "shadcn/components/ui/label";
+import { capitalizeFirstLetter } from "~/utils";
 
 export default function TextureControl({
   videoMaker,
@@ -15,21 +20,32 @@ export default function TextureControl({
   textureProperty: TextureProperty;
 }) {
   const [texture, setTexture] = useState<string | null>(textureProperty.value);
+  const [idSuffix] = useState(Math.random().toString(36).substring(7));
+  const id = `boolean-${textureProperty.key}-${idSuffix}`;
 
   useEffect(() => {
     setTexture(textureProperty.value);
   }, [textureProperty.value]);
 
+  const isTextureBlobURL = texture?.startsWith("blob:http");
+
   return (
-    <div>
-      <label>{textureProperty.key}</label>
+    <div className="p-2 flex flex-col gap-1">
+      <Label htmlFor={id}>{capitalizeFirstLetter(textureProperty.key)}</Label>
       {texture ? (
-        <>
-          {texture.startsWith("blob:http") ? (
-            <img src={texture} alt={textureProperty.key} className="w-full" />
+        <div id={id}>
+          {isTextureBlobURL ? (
+            <img
+              src={texture}
+              alt={textureProperty.key}
+              className="w-full rounded-t-md"
+            />
           ) : null}
-          <button
-            className="w-full rounded-md focus:outline-none"
+          <Button
+            variant="destructive"
+            className={`w-full rounded-md ${
+              isTextureBlobURL ? "rounded-t-none" : ""
+            }`}
             onClick={() => {
               videoMaker.setInspectableProperty(selectable, {
                 key: textureProperty.key,
@@ -39,12 +55,14 @@ export default function TextureControl({
               setTexture(null);
             }}
           >
-            Remove {textureProperty.key}
-          </button>
-        </>
+            Remove {capitalizeFirstLetter(textureProperty.key)}
+          </Button>
+        </div>
       ) : (
-        <button
-          className="w-full rounded-md focus:outline-none"
+        <Button
+          id={id}
+          variant="secondary"
+          className="w-full"
           onClick={() => {
             const fileInput = document.createElement("input");
             fileInput.type = "file";
@@ -71,8 +89,8 @@ export default function TextureControl({
             fileInput.click();
           }}
         >
-          Add {textureProperty.key}
-        </button>
+          Add {capitalizeFirstLetter(textureProperty.key)}
+        </Button>
       )}
     </div>
   );

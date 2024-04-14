@@ -1,6 +1,5 @@
 import type {
   IVideoMaker,
-  PrimitiveMeshType,
   SceneSettings,
   Inspectable,
 } from "~/videoMaker/interface";
@@ -22,10 +21,6 @@ import ColorControl from "../controls/colorControl";
 import NumberControl from "../controls/numberControl";
 import BooleanControl from "../controls/booleanControl";
 import Vector3Control from "../controls/vector3Control";
-import NumberSliderControl from "../controls/numberSliderControl";
-
-// TODO: Consolidate NumberSliderControl and NumberControl into a single control
-// If the NumberProperty has from and to values then it should be a slider, otherwise it should be a number input
 
 export default function PropertiesSubPanel({
   videoMaker,
@@ -55,17 +50,20 @@ export default function PropertiesSubPanel({
     videoMaker,
   ]);
 
-  let PropertiesControls;
+  let propertiesControls;
   if (selectedObject) {
     if (isInspectableAnimation(selectedObject)) {
-      PropertiesControls = (
-        <NumberSliderControl
-          videoMaker={videoMaker}
-          selectable={selectedObject}
-          numberProperty={selectedObject.getCurrentFrameProperty()}
-          from={selectedObject.firstFrame}
-          to={selectedObject.lastFrame}
-        />
+      propertiesControls = (
+        <div className="w-full p-2 bg-tertiary text-tertiary-foreground rounded-md">
+          <div className="w-full rounded-md focus:outline-none font-semibold">
+            Animation
+          </div>
+          <NumberControl
+            videoMaker={videoMaker}
+            selectable={selectedObject}
+            numberProperty={selectedObject.getCurrentFrameProperty()}
+          />
+        </div>
       );
     } else if (isInspectableMesh(selectedObject)) {
       const transformControls = [
@@ -131,83 +129,36 @@ export default function PropertiesSubPanel({
               });
       }
 
-      PropertiesControls = (
+      propertiesControls = (
         <>
-          <>
-            <div className="w-full rounded-md focus:outline-none">
+          <div className="w-full p-2 bg-tertiary text-tertiary-foreground rounded-md">
+            <div className="w-full rounded-md focus:outline-none font-semibold">
               Transform
             </div>
             {transformControls}
-          </>
+          </div>
           {materialPropertyControls ? (
-            <>
-              <div className="w-full rounded-md focus:outline-none">
-                Material Properties
+            <div className="w-full p-2 bg-tertiary text-tertiary-foreground rounded-md">
+              <div className="w-full rounded-md focus:outline-none font-semibold">
+                Material
               </div>
               {materialPropertyControls}
-            </>
+            </div>
           ) : null}
         </>
       );
     }
   }
 
-  return (
-    <ScrollArea className="h-full w-full bg-secondary text-secondary-foreground rounded-md">
-      <div className="px-1 py-2 w-full h-full rounded-md rounded-t-none flex flex-col items-center align-middle gap-2">
-        {PropertiesControls ? (
-          <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
-            {PropertiesControls}
-          </div>
-        ) : null}
-        <div className="p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
-          <select
-            value={sceneSettings.newPrimitiveMeshType}
-            onChange={(ev) => {
-              useEditorStore.setState(
-                (state: { sceneSettings: SceneSettings }) => ({
-                  sceneSettings: {
-                    ...state.sceneSettings,
-                    newPrimitiveMeshType: ev.target.value as PrimitiveMeshType,
-                  },
-                })
-              );
-            }}
-            className="w-full rounded-md focus:outline-none"
-          >
-            <option value="box">Box</option>
-            <option value="sphere">Sphere</option>
-            <option value="cylinder">Cylinder</option>
-            <option value="torus">Torus</option>
-            <option value="plane">Plane</option>
-            <option value="ground">Ground</option>
-          </select>
-          <button
-            className="w-full rounded-md focus:outline-none"
-            onClick={() => {
-              videoMaker.addPrimitiveMesh();
-            }}
-          >
-            Add Mesh
-          </button>
+  if (propertiesControls) {
+    return (
+      <ScrollArea className="h-full w-full py-1 bg-secondary text-secondary-foreground rounded-md">
+        <div className="overflow-x-hidden p-1 w-full rounded-md flex flex-col items-center align-middle gap-2">
+          {propertiesControls}
         </div>
-        <button
-          className="w-full rounded-md focus:outline-none"
-          onClick={() => {
-            videoMaker.importGLBModel();
-          }}
-        >
-          Import GLB Mesh
-        </button>
-        <button
-          className="w-full rounded-md focus:outline-none"
-          onClick={() => {
-            videoMaker.deleteInspectable();
-          }}
-        >
-          Delete
-        </button>
-      </div>
-    </ScrollArea>
-  );
+      </ScrollArea>
+    );
+  } else {
+    return null;
+  }
 }

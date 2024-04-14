@@ -119,16 +119,16 @@ export default function VideoMakerEditorShell({
             <>
               <ResizablePanel defaultSize={16} id="storyBoard" order={0}>
                 <div className="h-full">
-                  <StoryBoardPanel videoMaker={videoMaker} />
+                  <StoryBoardPanel />
                 </div>
               </ResizablePanel>
               <ResizableHandle
-                className="w-1 bg-background"
+                className="w-1.5 bg-background"
                 onDragging={resizeRenderCanvas}
               />
             </>
           ) : null}
-          <ResizablePanel defaultSize={68} id="renderCanvas" order={1}>
+          <ResizablePanel defaultSize={64} id="renderCanvas" order={1}>
             <div className="h-full relative">
               <EditorOverlayToolbar />
               {children}
@@ -137,10 +137,10 @@ export default function VideoMakerEditorShell({
           {videoMaker && panelVisibility.inspector ? (
             <>
               <ResizableHandle
-                className="w-1 bg-background"
+                className="w-1.5 bg-background"
                 onDragging={resizeRenderCanvas}
               />
-              <ResizablePanel defaultSize={16} id="inspector" order={2}>
+              <ResizablePanel defaultSize={20} id="inspector" order={2}>
                 <div className="h-full">
                   <InspectorPanel videoMaker={videoMaker} />
                 </div>

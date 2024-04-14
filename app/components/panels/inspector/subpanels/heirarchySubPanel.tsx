@@ -45,7 +45,7 @@ export default function HeirarchySubPanel({
   };
 
   return (
-    <ScrollArea className="h-full w-full bg-secondary text-secondary-foreground rounded-md">
+    <ScrollArea className="h-full w-full py-2 bg-secondary text-secondary-foreground rounded-md">
       <div className="p-1 w-full h-full flex flex-col items-center align-middle gap-2">
         <ul>
           {videoMaker.sceneInspectables.map((obj, i) => {

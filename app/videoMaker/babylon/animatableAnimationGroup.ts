@@ -19,6 +19,8 @@ export class AnimatableAnimationGroup implements InspectableAnimation {
     return {
       key: "currentFrame",
       value: this.currentFrame,
+      from: this.firstFrame,
+      to: this.lastFrame,
     };
   }
 
