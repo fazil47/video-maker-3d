@@ -252,7 +252,7 @@ export async function populateEnvironment(
     "KenneyPlayground.glb",
     scene
   ).then(({ meshes: kenneyPlayground }) => {
-    kenneyPlayground.forEach((mesh) => {
+    kenneyPlayground.slice(1).forEach((mesh) => {
       Tags.AddTagsTo(mesh, "meshWithoutAnimationGroups");
 
       // Add to animatedNodes
@@ -324,12 +324,14 @@ export async function populateEnvironment(
       sunShadowGenerator?.addShadowCaster(mesh);
       Tags.AddTagsTo(mesh, "shadowCaster");
 
-      gizmoManager?.attachableMeshes?.push(...kenneyPlayground.slice(1));
-      Tags.AddTagsTo(mesh, "gizmoAttachableMesh");
       mesh.id = scene?.getUniqueId().toString() as string;
       if (mesh.material) {
         mesh.material.id = scene?.getUniqueId().toString() as string;
       }
+
+      Tags.AddTagsTo(mesh, "gizmoAttachableMesh");
+      gizmoManager?.attachableMeshes?.push(mesh);
+
       sceneInspectables.push(mesh);
     });
   });
