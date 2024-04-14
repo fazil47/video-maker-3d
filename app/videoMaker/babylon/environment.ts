@@ -123,6 +123,8 @@ export async function createEnvironment(
   if (skySunGizmo.attachedMesh) {
     skySunGizmo.attachedMesh.name = skySun.name;
     gizmoManager.attachableMeshes?.push(skySunGizmo.attachedMesh);
+    skySunGizmo.attachedMesh.id = scene.getUniqueId().toString() as string;
+    scene.meshes.push(skySunGizmo.attachedMesh);
     sceneInspectables.push(skySunGizmo.attachedMesh);
     Tags.AddTagsTo(skySunGizmo.attachedMesh, "skySunGizmoAttachedMesh");
     skySunGizmo.attachedMesh.onRotationChanged = new Observable();

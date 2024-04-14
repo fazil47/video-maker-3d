@@ -325,6 +325,7 @@ export default class BabylonVideoMaker implements IVideoMaker {
       this._animatableAnimationsMap.get(id) ??
       this.scene?.getMeshById(id) ??
       this.scene?.getNodeById(id) ??
+      this.scene?.getLightById(id) ??
       null
     );
   }

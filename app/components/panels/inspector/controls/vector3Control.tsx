@@ -30,7 +30,7 @@ export default function Vector3Control({
   }, [vector3Property.value]);
 
   return (
-    <div className="p-2 flex flex-col gap-1">
+    <div className="p-2 flex flex-col gap-2">
       <Label htmlFor={id}>{capitalizeFirstLetter(vector3Property.key)}</Label>
       <div id={id} className="w-full flex flex-col">
         <div className="w-full flex flex-row justify-center align-middle items-center">
