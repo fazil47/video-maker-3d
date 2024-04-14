@@ -77,7 +77,7 @@ export interface IVideoMaker {
   /**
    * Adds a new primitive mesh to the scene.
    */
-  addPrimitiveMesh: () => void;
+  addPrimitiveMesh: (primitiveMeshType: PrimitiveMeshType) => void;
 
   /**
    * Imports a GLB model to the scene.
@@ -164,6 +164,8 @@ export const isBooleanProperty = (
 export type NumberProperty = {
   key: string;
   value: number;
+  from?: number;
+  to?: number;
 };
 
 export const isNumberProperty = (
@@ -174,6 +176,11 @@ export const isNumberProperty = (
     | TextureProperty
     | Vector3Property
 ): property is NumberProperty => typeof property.value === "number";
+
+export const isNumberSliderProperty = (
+  numberProperty: NumberProperty
+): boolean =>
+  numberProperty.from !== undefined && numberProperty.to !== undefined;
 
 // Value is a hex string
 export type ColourProperty = {
@@ -213,7 +220,6 @@ export const isTextureProperty = (
 
 export interface SceneSettings {
   transformGizmoMode: TransformGizmoMode;
-  newPrimitiveMeshType: PrimitiveMeshType;
   currentBoardIndex: number; // Corresponds to the indices in the keyframes array
   selectedItemID: string | null;
 }

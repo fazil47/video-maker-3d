@@ -12,6 +12,7 @@ import TopMenu from "./menus/topMenu";
 import StoryBoardPanel from "./panels/storyboard/storyBoardPanel";
 import InspectorPanel from "./panels/inspector/inspectorPanel";
 import BottomMenu from "./menus/bottomMenu";
+import EditorOverlayToolbar from "./editorOverlay/editorOverlayToolbar";
 
 export type PanelVisibility = {
   storyBoard: boolean;
@@ -116,24 +117,27 @@ export default function VideoMakerEditorShell({
         <ResizablePanelGroup direction="horizontal">
           {videoMaker && panelVisibility.storyBoard ? (
             <>
-              <ResizablePanel defaultSize={20} id="storyBoard" order={0}>
+              <ResizablePanel defaultSize={16} id="storyBoard" order={0}>
                 <div className="h-full">
-                  <StoryBoardPanel videoMaker={videoMaker} />
+                  <StoryBoardPanel />
                 </div>
               </ResizablePanel>
               <ResizableHandle
-                className="w-1"
+                className="w-1.5 bg-background"
                 onDragging={resizeRenderCanvas}
               />
             </>
           ) : null}
-          <ResizablePanel defaultSize={100} id="renderCanvas" order={1}>
-            <div className="h-full">{children}</div>
+          <ResizablePanel defaultSize={64} id="renderCanvas" order={1}>
+            <div className="h-full relative">
+              <EditorOverlayToolbar />
+              {children}
+            </div>
           </ResizablePanel>
           {videoMaker && panelVisibility.inspector ? (
             <>
               <ResizableHandle
-                className="w-1"
+                className="w-1.5 bg-background"
                 onDragging={resizeRenderCanvas}
               />
               <ResizablePanel defaultSize={20} id="inspector" order={2}>

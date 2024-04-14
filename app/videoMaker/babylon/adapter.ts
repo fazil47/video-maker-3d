@@ -90,6 +90,8 @@ export function implInspectableMeshForAbstractMesh() {
             {
               key: "alpha",
               value: this.material.alpha,
+              from: 0,
+              to: 1,
             },
             {
               key: "backFaceCulling",
@@ -142,10 +144,14 @@ export function implInspectableMeshForAbstractMesh() {
             {
               key: "metallic",
               value: this.material.metallic || 0,
+              from: 0,
+              to: 1,
             },
             {
               key: "roughness",
               value: this.material.roughness || 0,
+              from: 0,
+              to: 1,
             },
             {
               key: "ambientColor",
@@ -155,6 +161,8 @@ export function implInspectableMeshForAbstractMesh() {
             {
               key: "alpha",
               value: this.material.alpha,
+              from: 0,
+              to: 1,
             },
             {
               key: "backFaceCulling",

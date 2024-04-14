@@ -6,7 +6,7 @@ import type {
   AnimationGroup,
   AbstractMesh,
 } from "@babylonjs/core";
-import type { Inspectable, SceneSettings } from "~/videoMaker/interface";
+import type { Inspectable, PrimitiveMeshType } from "~/videoMaker/interface";
 
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -26,7 +26,7 @@ export function addPrimitiveMesh(
   keyframes: number[],
   storyBoardAnimationGroup: Nullable<AnimationGroup>,
   frameRate: number,
-  getSceneSettings: () => SceneSettings | null
+  primitiveMeshType: PrimitiveMeshType
 ): AbstractMesh {
   if (!scene) {
     throw new Error("No scene");
@@ -40,12 +40,6 @@ export function addPrimitiveMesh(
     throw new Error("No story board animation group");
   }
 
-  const sceneSettings = getSceneSettings();
-
-  if (!sceneSettings) {
-    throw new Error("No scene settings");
-  }
-
   // Set base ambient color to white
   const material = new StandardMaterial("material", scene);
   material.ambientColor = new Color3(1, 1, 1);
@@ -53,7 +47,7 @@ export function addPrimitiveMesh(
 
   let mesh: AbstractMesh;
 
-  switch (sceneSettings.newPrimitiveMeshType) {
+  switch (primitiveMeshType) {
     case "box":
       mesh = MeshBuilder.CreateBox("box", {}, scene);
       break;
