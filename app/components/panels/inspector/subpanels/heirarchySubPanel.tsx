@@ -53,7 +53,7 @@ export default function HeirarchySubPanel({
           return (
             <li key={i} className="flex flex-col">
               <Toggle
-                className="flex flex-row justify-start data-[state=on]:bg-background data-[state=on]:text-foreground"
+                className="flex flex-row gap-1 justify-start items-center align-middle data-[state=on]:bg-background data-[state=on]:text-foreground"
                 pressed={animation.id === sceneSettings.selectedItemID}
                 id={
                   animation.id === sceneSettings.selectedItemID
@@ -64,7 +64,8 @@ export default function HeirarchySubPanel({
                   videoMaker.selectInspectable(animation);
                 }}
               >
-                {animation.name}&nbsp;&nbsp;<Badge>anim</Badge>
+                <div className="h-5">{animation.name}</div>
+                <Badge className="h-5 flex-wrap">anim</Badge>
               </Toggle>
             </li>
           );
