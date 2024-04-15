@@ -23,10 +23,13 @@ export default function HeirarchySubPanel({
   useEffect(() => {
     const selectedToggle = document.getElementById("selected");
     if (selectedToggle) {
-      selectedToggle.scrollIntoView({
-        block: "center",
-        inline: "center",
-      });
+      // Delay the scrollIntoView to make sure the DOM has updated
+      setTimeout(() => {
+        selectedToggle.scrollIntoView({
+          block: "center",
+          inline: "center",
+        });
+      }, 100);
     }
   }, [sceneSettings.selectedItemID]);
 
