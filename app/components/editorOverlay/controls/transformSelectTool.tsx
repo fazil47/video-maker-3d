@@ -18,7 +18,7 @@ export default function TransformSelectTool({
   return (
     <ToggleGroup
       type="single"
-      className={"bg-primary w-fit rounded-md p-1" + " " + className}
+      className={"bg-background w-fit rounded-md p-1" + " " + className}
       onValueChange={(value) => {
         useEditorStore.setState((state: { sceneSettings: SceneSettings }) => ({
           sceneSettings: {
@@ -30,21 +30,21 @@ export default function TransformSelectTool({
       value={sceneSettings.transformGizmoMode}
     >
       <ToggleGroupItem
-        className="p-2 h-6"
+        className="p-2 h-6 data-[state=on]:bg-input data-[state=on]:text-tertiary-foreground"
         value="position"
         aria-label="Toggle translate"
       >
         <Move3D className="h-3 w-3" />
       </ToggleGroupItem>
       <ToggleGroupItem
-        className="p-2 h-6"
+        className="p-2 h-6 data-[state=on]:bg-input data-[state=on]:text-tertiary-foreground"
         value="rotation"
         aria-label="Toggle rotate"
       >
         <Rotate3D className="h-3 w-3" />
       </ToggleGroupItem>
       <ToggleGroupItem
-        className="p-2 h-6"
+        className="p-2 h-6 data-[state=on]:bg-input data-[state=on]:text-tertiary-foreground"
         value="scale"
         aria-label="Toggle scale"
       >
