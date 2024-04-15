@@ -9,6 +9,7 @@ import { useEditorStore } from "~/components/videoMakerEditorShell";
 import { isInspectableMesh } from "~/videoMaker/interface";
 import { Toggle } from "shadcn/components/ui/toggle";
 import { Badge } from "shadcn/components/ui/badge";
+import { useEffect } from "react";
 
 export default function HeirarchySubPanel({
   videoMaker,
@@ -18,6 +19,16 @@ export default function HeirarchySubPanel({
   const sceneSettings = useEditorStore<SceneSettings>(
     (state: { sceneSettings: SceneSettings }) => state.sceneSettings
   );
+
+  useEffect(() => {
+    const selectedToggle = document.getElementById("selected");
+    if (selectedToggle) {
+      selectedToggle.scrollIntoView({
+        block: "center",
+        inline: "center",
+      });
+    }
+  }, [sceneSettings.selectedItemID]);
 
   const getInspectableAnimations = (obj: Inspectable) => {
     if (!isInspectableMesh(obj)) {
@@ -41,6 +52,11 @@ export default function HeirarchySubPanel({
               <Toggle
                 className="flex flex-row justify-start data-[state=on]:bg-background data-[state=on]:text-foreground"
                 pressed={animation.id === sceneSettings.selectedItemID}
+                id={
+                  animation.id === sceneSettings.selectedItemID
+                    ? "selected"
+                    : ""
+                }
                 onClick={() => {
                   videoMaker.selectInspectable(animation);
                 }}
@@ -63,6 +79,7 @@ export default function HeirarchySubPanel({
               <Toggle
                 className="flex flex-row justify-start data-[state=on]:bg-background data-[state=on]:text-foreground"
                 pressed={obj.id === sceneSettings.selectedItemID}
+                id={obj.id === sceneSettings.selectedItemID ? "selected" : ""}
                 onClick={() => {
                   videoMaker.selectInspectable(obj);
                 }}
