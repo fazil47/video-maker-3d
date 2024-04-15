@@ -93,6 +93,7 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: 'JetBrains Mono', monospace;
   }
   body {
     @apply bg-background text-foreground;
