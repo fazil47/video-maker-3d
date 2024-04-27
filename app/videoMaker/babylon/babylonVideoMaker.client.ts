@@ -363,7 +363,8 @@ export default class BabylonVideoMaker implements IVideoMaker {
     if (VideoRecorder.IsSupported(this.engine)) {
       const videoRecorder = new VideoRecorder(this.engine, {
         fps: this._frameRate,
-        recordChunckSize: 300,
+        recordChunckSize: 3000000,
+        mimeType: "video/webm;codecs=h264",
       });
       videoRecorder.startRecording("storyboard.webm", 0);
 
