@@ -135,10 +135,12 @@ export function matchBoardCurrentKeyframe(
         } else if (
           targetedAnimation.target instanceof AnimatableAnimationGroup
         ) {
+          // FIXME: Somehow the animations of deleted objects are still being updated
+          // FIXME: When the current value and the stored value are the same, the animations in a GLB object with multiple animations gets reset
           targetedAnimation.target.currentFrame =
             targetedAnimation.animation.getKeys()[
               sceneSettings.currentBoardIndex
-            ]?.value;
+            ]?.value || 0;
         }
       }
     }
