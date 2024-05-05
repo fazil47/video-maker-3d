@@ -703,6 +703,12 @@ export function importGLBMesh(
       const animatableAnimationGroups: AnimatableAnimationGroup[] =
         animationGroups
           .map((animationGroup) => {
+            animationGroup.play();
+            animationGroup.reset();
+            animationGroup.pause();
+            animationGroup.weight = 0;
+            animationGroup.enableBlending = true;
+
             return new AnimatableAnimationGroup(
               animationGroup,
               (currentFrame, animation) => {
@@ -719,6 +725,10 @@ export function importGLBMesh(
             );
           })
           .filter(notEmpty);
+
+      if (animatableAnimationGroups.length > 0) {
+        animatableAnimationGroups[0].weight = 1;
+      }
 
       meshesToAnimationGroupsMap.set(
         boundingBoxMesh.name,
