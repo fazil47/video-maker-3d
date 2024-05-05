@@ -36,6 +36,8 @@ export class AnimatableAnimationGroup implements InspectableAnimation {
     return {
       key: "blendWeight",
       value: this.blendWeight,
+      from: 0,
+      to: 1,
     };
   }
 

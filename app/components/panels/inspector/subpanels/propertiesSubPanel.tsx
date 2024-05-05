@@ -63,6 +63,11 @@ export default function PropertiesSubPanel({
             selectable={selectedObject}
             numberProperty={selectedObject.getCurrentFrameProperty()}
           />
+          <NumberControl
+            videoMaker={videoMaker}
+            selectable={selectedObject}
+            numberProperty={selectedObject.getBlendWeightProperty()}
+          />
         </div>
       );
     } else if (isInspectableMesh(selectedObject)) {
